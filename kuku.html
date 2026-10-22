@@ -1,0 +1,1103 @@
+<title>九九と筆算の道場</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Zen+Maru+Gothic:wght@500;700&display=swap">
+<style>
+/* Layout: 上にステップ選択、下に「図」と「式・入力」を左右に並べる作業パネル（狭い画面では縦積み）。
+   箱の青い丸は手元の教材の図に合わせ、強調の「あと」の分だけオレンジにする。 */
+:root{
+  --bg:#edf1f6; --surface:#ffffff; --surface2:#f5f8fc; --ink:#14202e; --muted:#566678;
+  --line:#d3dce7; --line-strong:#8fa0b4; --boxline:#24364b;
+  --blue:#1d74d8; --blue-ink:#0f4c9a; --blue-soft:#dcebfb; --on-blue:#ffffff;
+  --orange:#ee8416; --orange-soft:#fff0dc;
+  --good:#12804d; --good-soft:#dff3e8; --warn:#9a5200; --warn-soft:#fdecd3;
+  --font-body:"BIZ UDPGothic","Hiragino Sans","Yu Gothic UI","Meiryo",sans-serif;
+  --font-num:"Zen Maru Gothic","BIZ UDPGothic","Hiragino Maru Gothic ProN","Meiryo",sans-serif;
+  --cs:clamp(30px,8.4vw,52px); --g:6px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e1621; --surface:#172130; --surface2:#1e2b3d; --ink:#e8eef6; --muted:#9db0c4;
+    --line:#2b394e; --line-strong:#5d7189; --boxline:#9db3cc;
+    --blue:#4d9bf0; --blue-ink:#8cc0fa; --blue-soft:#1b3350; --on-blue:#06182c;
+    --orange:#f5a04a; --orange-soft:#3a2a16;
+    --good:#4cc58b; --good-soft:#15362a; --warn:#f0b463; --warn-soft:#3a2d17;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e1621; --surface:#172130; --surface2:#1e2b3d; --ink:#e8eef6; --muted:#9db0c4;
+  --line:#2b394e; --line-strong:#5d7189; --boxline:#9db3cc;
+  --blue:#4d9bf0; --blue-ink:#8cc0fa; --blue-soft:#1b3350; --on-blue:#06182c;
+  --orange:#f5a04a; --orange-soft:#3a2a16;
+  --good:#4cc58b; --good-soft:#15362a; --warn:#f0b463; --warn-soft:#3a2d17;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:16px;line-height:1.7}
+button{font:inherit;color:inherit}
+.wrap{max-width:1000px;margin:0 auto;padding-block:22px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:18px}
+.eyebrow{margin:0;font-size:13px;letter-spacing:.12em;color:var(--muted)}
+h1{margin:2px 0 4px;font-family:var(--font-num);font-size:clamp(26px,5.6vw,36px);line-height:1.25;text-wrap:balance}
+.lead{margin:0;color:var(--muted);max-width:42em}
+
+/* ステップ選択 */
+:focus-visible{outline:3px solid var(--orange);outline-offset:2px}
+
+/* パネル */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:clamp(14px,3vw,24px);display:flex;flex-direction:column;gap:16px}
+.phead{display:flex;flex-wrap:wrap;gap:12px 20px;justify-content:space-between;align-items:flex-start}
+.phead>div:first-child{min-width:0;flex:1 1 320px}
+.stepno{margin:0;font-size:13px;color:var(--muted);letter-spacing:.08em}
+h2{margin:0;font-family:var(--font-num);font-size:clamp(22px,4.6vw,28px);line-height:1.3}
+.desc{margin:4px 0 0;color:var(--muted);max-width:46em}
+.seg{display:flex;border:1.5px solid var(--blue);border-radius:12px;overflow:hidden}
+.seg button{border:0;background:transparent;padding:10px 20px;cursor:pointer;color:var(--blue-ink);font-weight:700;min-height:44px}
+.seg button[aria-pressed="true"]{background:var(--blue);color:var(--on-blue)}
+.patrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.patrow .lab{font-size:14px;color:var(--muted);margin-right:4px}
+.pat{display:flex;align-items:center;gap:6px;border:1.5px solid var(--line);background:var(--surface2);border-radius:10px;padding:4px 12px;cursor:pointer;min-height:38px;font-size:14px}
+.pat[aria-pressed="true"]{border-color:var(--blue);background:var(--blue-soft)}
+.mini{display:inline-block;width:16px;height:16px;border-radius:50%;background:var(--blue)}
+
+/* 作業エリア */
+.work{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:820px){.work{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--surface2);border:1px solid var(--line);border-radius:14px;padding:clamp(12px,2.6vw,20px)}
+.cardhead{margin:0 0 10px;font-size:13px;letter-spacing:.08em;color:var(--muted);font-weight:700}
+.figbody{display:flex;flex-direction:column;gap:12px;min-height:90px}
+.figrow{display:flex;flex-wrap:wrap;align-items:center;gap:14px 18px}
+.op{font-family:var(--font-num);font-size:clamp(24px,6vw,34px);font-weight:700;color:var(--muted)}
+.frame{display:flex;flex-direction:column;gap:6px}
+.box{display:flex;gap:var(--g);padding:var(--g);border:3px solid var(--boxline);border-radius:10px;background:var(--surface)}
+.loose{display:grid;grid-template-columns:repeat(var(--n,5),var(--cs));gap:var(--g)}
+.tiles{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.tile{display:grid;place-items:center;width:clamp(48px,11vw,64px);height:clamp(48px,11vw,64px);border-radius:12px;background:var(--blue);color:var(--on-blue);font-family:var(--font-num);font-weight:700;font-size:clamp(18px,4vw,24px);position:relative}
+.tile.add{background:var(--orange);color:#1b1206}
+.tile.gone{background:transparent;border:2px dashed var(--line-strong);color:var(--line-strong)}
+.tile.gone::after{content:"✕";position:absolute;color:var(--warn);font-size:1.5em;opacity:.85}
+
+/* 丸・くだもの */
+.cell{width:var(--cs);height:var(--cs);display:grid;place-items:center;border-radius:50%;position:relative;font-size:calc(var(--cs)*.78);line-height:1;flex:none;user-select:none}
+.cell:not(.fruit).on{background:var(--blue)}
+.cell:not(.fruit).add{background:var(--orange)}
+.cell.off{border:2px dashed var(--line-strong)}
+.cell.ghost{border:2px dotted var(--line-strong);opacity:.7}
+.cell:not(.fruit).gone{border:2px dashed var(--line-strong)}
+.cell.fruit.add{box-shadow:0 0 0 3px var(--orange);}
+.cell.fruit.gone{opacity:.35}
+.cell.gone::after{content:"✕";position:absolute;font-size:.62em;font-weight:700;color:var(--warn);opacity:1}
+.cell[data-tap]{cursor:pointer}
+.cell[data-tap]:hover{box-shadow:0 0 0 3px var(--blue-soft)}
+.pop{animation:pop .35s ease-out}
+@keyframes pop{0%{transform:scale(.4)}70%{transform:scale(1.18)}100%{transform:scale(1)}}
+.tapinfo{margin:0;font-size:14px;color:var(--blue-ink);background:var(--blue-soft);border-radius:8px;padding:6px 10px;align-self:flex-start}
+
+/* 式 */
+.lines{display:flex;flex-direction:column;gap:10px}
+.main{font-family:var(--font-num);font-weight:700;font-size:clamp(26px,6vw,36px);line-height:1.3;padding-bottom:8px;border-bottom:1px dashed var(--line-strong)}
+.line{display:flex;flex-direction:column;gap:0;padding:6px 10px;border-radius:10px;border-left:5px solid transparent}
+.line.active{background:var(--blue-soft);border-left-color:var(--blue)}
+.line.done{border-left-color:var(--good)}
+.tag{font-size:13px;color:var(--muted)}
+.eq{font-family:var(--font-num);font-weight:700;font-size:clamp(24px,5.6vw,32px);line-height:1.4}
+.ans{color:var(--good)}
+.sq,.blank{display:inline-block;min-width:1.5em;text-align:center;border-bottom:3px solid var(--blue);background:var(--surface);border-radius:6px;padding:0 .15em;color:var(--blue-ink)}
+.sq{background:transparent;border-bottom:0;color:var(--muted)}
+.blank.shake{animation:shake .4s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.say{margin:12px 0 0;padding:10px 12px;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+.msg{min-height:1.7em;margin:10px 0 0;font-weight:700}
+.msg.good{color:var(--good)}
+.msg.warn{color:var(--warn)}
+.hintbox{margin:8px 0 0;padding:10px 12px;border-radius:10px;background:var(--warn-soft);color:var(--ink)}
+.donebox{margin:10px 0 0;padding:10px 12px;border-radius:10px;background:var(--good-soft);font-family:var(--font-num);font-weight:700;font-size:clamp(17px,3.8vw,21px);line-height:1.6}
+
+/* ボタン・テンキー */
+.btn{border:1.5px solid var(--line-strong);background:var(--surface);border-radius:12px;padding:10px 18px;cursor:pointer;min-height:48px;font-weight:700}
+.btn:hover{border-color:var(--blue)}
+.btn.primary{background:var(--blue);border-color:var(--blue);color:var(--on-blue)}
+.btn:disabled{opacity:.4;cursor:default}
+.navbtns,.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;max-width:340px}
+.key{border:1.5px solid var(--line-strong);background:var(--surface);border-radius:12px;min-height:54px;font-family:var(--font-num);font-size:24px;font-weight:700;cursor:pointer}
+.key:active{background:var(--blue-soft)}
+.key.enter{background:var(--blue);border-color:var(--blue);color:var(--on-blue);font-size:18px}
+.progress{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.pcount{font-weight:700}
+.pdots{display:flex;gap:6px;flex-wrap:wrap}
+.pd{width:14px;height:14px;border-radius:50%;border:2px solid var(--line-strong)}
+.pd.cur{border-color:var(--blue);background:var(--blue-soft)}
+.pd.ok{background:var(--good);border-color:var(--good)}
+.pd.miss{background:var(--orange);border-color:var(--orange)}
+
+/* 結果 */
+.result{display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+.result h3{margin:0;font-family:var(--font-num);font-size:clamp(22px,5vw,30px)}
+.bigstars{font-size:34px;letter-spacing:4px;color:var(--orange)}
+.misslist{margin:0;padding-left:1.2em;font-family:var(--font-num);font-weight:700}
+.notes{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 18px}
+.notes summary{cursor:pointer;font-weight:700;min-height:32px}
+.notes ul{margin:8px 0 0;padding-left:1.3em}
+.notes li{margin:4px 0}
+/* 達成度の棒グラフ・合格 */
+.bar{position:relative;display:block;height:8px;border-radius:99px;background:var(--line)}
+.bar i{display:block;height:100%;border-radius:99px;background:var(--blue);transition:width .5s ease}
+.bar u{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink);opacity:.5;text-decoration:none}
+.bar.ok i{background:var(--good)}
+.pat{cursor:default}
+.pat small{font-size:11px;color:var(--muted)}
+.pat.on{border-color:var(--blue);background:var(--blue-soft)}
+.pat:not(.on){opacity:.7}
+.ubar{display:flex;flex-direction:column;gap:6px;margin-top:10px;max-width:520px}
+.ubar .bar{height:14px}
+.ustat{margin:0;font-size:14px;color:var(--muted)}
+.ustat .pass{color:var(--good);font-size:20px;margin-right:10px;font-family:var(--font-num)}
+.passbanner{margin:0;padding:8px 18px;border-radius:12px;border:2px solid var(--good);background:var(--good-soft);color:var(--good);font-family:var(--font-num);font-weight:700;font-size:clamp(22px,5vw,30px)}
+.needmore{margin:0;color:var(--muted)}
+/* 単元一覧 */
+.index{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:clamp(14px,3vw,22px);display:flex;flex-direction:column;gap:14px}
+.ihead{display:flex;flex-wrap:wrap;align-items:center;gap:10px 20px}
+#overall{flex:1 1 320px;display:flex;align-items:center;gap:16px;min-width:0}
+.ostat{display:flex;align-items:baseline;gap:8px;white-space:nowrap}
+.ostat b{font-family:var(--font-num);font-size:36px;line-height:1}
+.ostat span{font-size:13px;color:var(--muted);letter-spacing:.06em}
+#overall .bar{flex:1 1 auto;height:6px;min-width:60px}
+.btn.small{min-height:40px;padding:6px 16px;font-size:14px;font-weight:400}
+#nav{display:flex;flex-direction:column}
+.grow{display:grid;grid-template-columns:150px minmax(0,1fr);gap:10px 20px;padding:14px 0;border-top:1px solid var(--line)}
+.gname{display:flex;flex-direction:column;gap:2px;padding-top:2px}
+.gname b{font-size:15px}
+.gcount{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.ugrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.unit{display:flex;flex-direction:column;justify-content:space-between;gap:8px;text-align:left;min-height:88px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);cursor:pointer;transition:border-color .15s,background .15s}
+.unit:hover{border-color:var(--blue)}
+.u-top{display:flex;justify-content:space-between;align-items:baseline;gap:6px}
+.u-no{font-family:var(--font-num);font-weight:700;color:var(--muted);font-size:15px}
+.u-stat{font-size:12px;color:var(--muted);white-space:nowrap}
+.u-title{font-size:15px;line-height:1.35;font-weight:700;flex:1}
+.unit .bar{height:5px}
+.unit.passed .u-stat{color:var(--good);font-weight:700}
+.unit[aria-current="true"]{background:var(--blue);border-color:var(--blue);color:var(--on-blue)}
+.unit[aria-current="true"] .u-no,.unit[aria-current="true"] .u-stat,.unit[aria-current="true"].passed .u-stat{color:var(--on-blue)}
+.unit[aria-current="true"] .bar{background:rgba(255,255,255,.35)}
+.unit[aria-current="true"] .bar i,.unit[aria-current="true"] .bar.ok i{background:var(--on-blue)}
+.unit[aria-current="true"] .bar u{background:var(--on-blue);opacity:.9}
+.ilegend{margin:0;padding-top:12px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px}
+.lg-line{display:inline-block;width:2px;height:12px;background:var(--ink);opacity:.5}
+@media (max-width:720px){
+  .grow{grid-template-columns:minmax(0,1fr)}
+  .gname{flex-direction:row;align-items:baseline;gap:10px}
+  .ugrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+/* ひっ算 */
+.hissan{align-self:flex-start;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 18px 14px}
+.hissan table{border-collapse:collapse;font-family:var(--font-num);font-weight:700;font-size:clamp(30px,8vw,44px);line-height:1.3;text-align:center}
+.hissan td{min-width:1.6em;padding:0 .12em}
+.hissan .hd td{font-size:13px;font-family:var(--font-body);font-weight:400;color:var(--muted);padding-bottom:4px}
+.hissan .mk td{font-size:.5em;height:1.3em;color:var(--orange);line-height:1}
+.hissan .sg{color:var(--muted);text-align:left}
+.hissan .r td{border-top:3px solid var(--boxline)}
+.hissan .r .ok{color:var(--good)}
+.hissan .cx{text-decoration:line-through;text-decoration-color:var(--orange);text-decoration-thickness:3px;color:var(--muted)}
+.hissan sup{font-size:.45em;color:var(--orange);vertical-align:top;position:relative;top:.15em}
+.ph{display:inline-block;width:.8em;height:.8em;border:2px dashed var(--line-strong);border-radius:6px;vertical-align:middle}
+/* 点数 */
+.scoreline{margin:6px 0 0;font-size:14px;font-weight:700;color:var(--blue-ink)}
+.scores{margin:0;display:flex;flex-wrap:wrap;gap:8px}
+.scorebox{background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:8px 16px;min-width:110px}
+.scorebox.now{border-color:var(--blue);background:var(--blue-soft)}
+.scorebox small{display:block;font-size:13px;color:var(--muted)}
+.scorebox b{font-family:var(--font-num);font-size:28px;line-height:1.2}
+@media (prefers-reduced-motion:reduce){.pop,.blank.shake{animation:none}}
+
+/* 九九アプリ */
+.beltchip{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:6px 14px}
+.btxt{display:flex;flex-direction:column;line-height:1.2}.btxt small{font-size:11px;color:var(--muted)}.btxt b{font-family:var(--font-num);font-size:18px}
+.belt{display:inline-block;width:46px;height:14px;border-radius:3px;border:2px solid var(--boxline);position:relative;flex:none}
+.belt::after{content:"";position:absolute;left:50%;top:-2px;bottom:-2px;width:10px;transform:translateX(-50%);background:inherit;border:2px solid var(--boxline);border-radius:2px}
+.belt.none{background:transparent;border-style:dashed;opacity:.6}.belt.none::after{display:none}
+.belt.white{background:#fff}.belt.black{background:#1b1b1f;border-color:#6b7280}.belt.black::after{border-color:#6b7280}
+.belt.big{width:150px;height:34px;border-width:3px}.belt.big::after{width:26px}
+.cere{display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 0}
+.ktable{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:3px}
+.kh{display:grid;place-items:center;font-size:13px;color:var(--muted);font-weight:700;min-height:26px}
+.k{display:grid;place-items:center;min-height:clamp(28px,6.4vw,40px);border-radius:7px;border:1px solid var(--line);background:var(--surface);font-family:var(--font-num);font-weight:700;font-size:clamp(12px,3.2vw,17px);color:var(--ink)}
+.k.heard{background:var(--surface2);color:var(--muted)}
+.k.ok,.k.m{background:hsl(var(--h) 75% 84%);border-color:hsl(var(--h) 55% 55%);color:#1b1b1f}
+.k.m:not(.ok){background:hsl(var(--h) 70% 88%)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .k.ok,:root:not([data-theme="light"]) .k.m{background:hsl(var(--h) 45% 30%);color:#fff;border-color:hsl(var(--h) 50% 55%)}}
+:root[data-theme="dark"] .k.ok,:root[data-theme="dark"] .k.m{background:hsl(var(--h) 45% 30%);color:#fff;border-color:hsl(var(--h) 50% 55%)}
+.k.hl{box-shadow:0 0 0 2px var(--orange)}
+.k.pulse{animation:pop .45s ease-out}
+.klegend{margin:10px 0 0;font-size:13px;color:var(--muted)}
+.tcard{align-self:start}
+.vpop{min-height:150px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;text-align:center}
+.vpop .popeq{font-family:var(--font-num);font-weight:700;font-size:clamp(36px,10vw,56px);color:hsl(var(--h) 60% 38%);animation:pop .35s ease-out}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .vpop .popeq{color:hsl(var(--h) 70% 72%)}}
+:root[data-theme="dark"] .vpop .popeq{color:hsl(var(--h) 70% 72%)}
+.popeq b{color:var(--good)}
+.popread{font-size:clamp(18px,4.4vw,24px);font-family:var(--font-num);font-weight:700;color:var(--muted)}
+.popcount{margin:8px 0 0;color:var(--muted);font-size:14px;min-height:1.7em}
+.vnote{margin:10px 0 0;font-size:12px;color:var(--muted);line-height:1.9}.vnote select{font:inherit;max-width:100%;padding:4px;border-radius:8px;border:1px solid var(--line-strong);background:var(--surface);color:var(--ink)}
+.mcq{font-family:var(--font-num);font-weight:700;font-size:clamp(34px,9vw,52px);text-align:center;margin:14px 0;line-height:1.3}
+.qm{color:var(--blue-ink)}
+.mcgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.mcb{border:2px solid var(--line-strong);background:var(--surface);border-radius:14px;min-height:72px;font-family:var(--font-num);font-weight:700;font-size:clamp(26px,7vw,36px);cursor:pointer}
+.mcb.long{font-size:clamp(18px,4.6vw,24px)}
+.mcb:hover:not(:disabled){border-color:var(--blue);background:var(--blue-soft)}
+.mcb.right{background:var(--good-soft);border-color:var(--good);color:var(--good)}
+.mcb.wrong{opacity:.4;border-style:dashed;text-decoration:line-through}
+.mcbarwrap{flex:1;min-width:120px}.mcbarwrap .bar{height:10px}
+.mccard{max-width:640px;margin:0 auto;width:100%}
+.work.one{grid-template-columns:minmax(0,1fr)}
+.rtitle{margin:0 0 8px;font-family:var(--font-num);font-size:clamp(22px,5vw,28px)}
+.dangrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:10px}
+.dbtn.done{border-color:var(--good);color:var(--good)}
+.hissan .lb td{border-bottom:3px solid var(--boxline)}
+.hissan .lb td.sg{border-bottom:0}
+.hissan .ok{color:var(--good)}
+.divt td{min-width:1.1em;height:1.35em}
+.divt .dv{border-right:3px solid var(--boxline);text-align:right;padding-right:.25em}
+.divt .dd{border-top:3px solid var(--boxline)}
+.divt .ul{border-bottom:3px solid var(--boxline)}
+.divt .dn{color:var(--orange)}
+.divt .rl{font-size:.5em;text-align:left;white-space:nowrap;color:var(--warn);padding-left:.6em}
+.topbar{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:flex-end;justify-content:space-between}
+@media (max-width:420px){.mcgrid{gap:8px}.hissan{padding:8px 10px 10px}}
+</style>
+
+<div class="wrap">
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">江原予備校　小学校算数プログラム</p>
+      <h1>九九と筆算の道場</h1>
+      <p class="lead">九九を声で聞いて覚え、4択で確かめます。九九の表に色がつき、白帯・黒帯をめざします。そのあと、かけ算・わり算のひっ算に進みます。</p>
+    </div>
+    <div class="beltchip" id="beltChip"></div>
+  </header>
+  <section class="index" aria-label="単元一覧">
+    <div class="ihead">
+      <div id="overall"></div>
+      <button type="button" class="btn small" id="navToggle" aria-expanded="true" aria-controls="nav">一覧をとじる</button>
+    </div>
+    <nav id="nav" aria-label="単元"></nav>
+  </section>
+  <section class="panel">
+    <div class="phead">
+      <div>
+        <p class="stepno" id="stepNo"></p>
+        <h2 id="stepTitle"></h2>
+        <p class="desc" id="stepDesc"></p>
+        <p class="scoreline" id="scoreLine"></p>
+        <div id="unitBar"></div>
+      </div>
+      <div class="seg" id="seg" role="group" aria-label="表示の切りかえ">
+        <button id="tabExplain" type="button" aria-pressed="true">せつめい</button>
+        <button id="tabPractice" type="button" aria-pressed="false">れんしゅう</button>
+      </div>
+    </div>
+    <div id="view"></div>
+  </section>
+  <details class="notes">
+    <summary>先生用メモ（進め方）</summary>
+    <ul>
+      <li>九九は「1の段」から順に。「挑戦」で声が読み上げられ、読むたびに式が出て、右の表に答えが入ります。「くりかえす」でもう一度、「覚えました」で4択の確認へ進みます。</li>
+      <li>1回目は順番、2回目と3回目はランダムです。3回目で80点以上ならその段のマスターです。4択で、ひとりで正解したマスに色がつきます（まちがえたマスは色がつきません）。</li>
+      <li>1〜9の段をすべてマスターすると白帯。そのあと、黒帯チャレンジ（1〜9の段から45問・80点以上）に挑戦できます。何度でも挑戦できます。</li>
+      <li>声は端末にある日本語の音声を使います。Chromeでは「Google 日本語」が使えることが多く、なければ別の音声か、文字だけの表示になります。音が出ないときは端末の音量を確認してください。</li>
+      <li>かけ算・わり算のひっ算は、各単元7問です。せつめい（例題）のあと、れんしゅうで1問ずつ手順を入力します。2回目でヒント、3回目で答えを見せます。点数は1回目・2回目…と記録が残ります。</li>
+      <li>わり算は、九九の範囲（4択）→ 2桁÷1桁 → 3桁÷1桁 → 2桁÷2桁 → 3桁÷2桁。あまりなし・あまりありの両方があります。</li>
+      <li>記録はこの端末のブラウザにだけ残ります。生徒が代わるときは下のボタンで消してください。</li>
+    </ul>
+    <div class="actions">
+      <button type="button" class="btn" id="resetBtn">記録を消す</button>
+      <button type="button" class="btn primary" id="notesClose">メモをとじる</button>
+    </div>
+  </details>
+</div>
+<script>
+(function(){
+'use strict';
+const $=(s,r)=>(r||document).querySelector(s);
+const rnd=n=>Math.floor(Math.random()*n);
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]]}return a};
+const range=(a,b)=>{const r=[];for(let i=a;i<=b;i++)r.push(i);return r};
+const pickN=(arr,n)=>shuffle(arr).slice(0,n);
+const PASS=80;
+const today=()=>{try{return new Date().toLocaleDateString('ja-JP')}catch(e){return ''}};
+
+/* ---------- 記録（この端末のブラウザだけ） ---------- */
+const KEY='kogen-kuku-v1';let mem=null;
+function db(){
+  if(mem)return mem;
+  try{mem=JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch(e){mem={}}
+  mem.heard=mem.heard||{};mem.ok=mem.ok||{};mem.dan=mem.dan||{};mem.units=mem.units||{};mem.black=mem.black||[];
+  return mem;
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(mem||{}))}catch(e){}}
+const isMaster=n=>!!(db().dan[n]&&db().dan[n].master);
+const masters=()=>range(1,9).filter(isMaster).length;
+const okCell=(a,b)=>(db().ok[a+'-'+b]||0)>0;
+const colored=(a,b)=>okCell(a,b)||isMaster(a);
+const rowColored=a=>range(1,9).filter(b=>colored(a,b)).length;
+const totalColored=()=>range(1,9).reduce((s,a)=>s+rowColored(a),0);
+const showCell=(a,b)=>!!db().heard[a+'-'+b]||colored(a,b);
+
+/* ---------- 九九の読み ---------- */
+const YOMI=[[],
+['いんいちがいち','いんにがに','いんさんがさん','いんしがし','いんごがご','いんろくがろく','いんしちがしち','いんはちがはち','いんくがく'],
+['にいちがに','ににんがし','にさんがろく','にしがはち','にごじゅう','にろくじゅうに','にしちじゅうし','にはちじゅうろく','にくじゅうはち'],
+['さんいちがさん','さんにがろく','さざんがく','さんしじゅうに','さんごじゅうご','さぶろくじゅうはち','さんしちにじゅういち','さんぱにじゅうし','さんくにじゅうしち'],
+['しいちがし','しにがはち','しさんじゅうに','ししじゅうろく','しごにじゅう','しろくにじゅうし','ししちにじゅうはち','しはさんじゅうに','しくさんじゅうろく'],
+['ごいちがご','ごにじゅう','ごさんじゅうご','ごしにじゅう','ごごにじゅうご','ごろくさんじゅう','ごしちさんじゅうご','ごはしじゅう','ごくしじゅうご'],
+['ろくいちがろく','ろくにじゅうに','ろくさんじゅうはち','ろくしにじゅうし','ろくごさんじゅう','ろくろくさんじゅうろく','ろくしちしじゅうに','ろくはしじゅうはち','ろっくごじゅうし'],
+['しちいちがしち','しちにじゅうし','しちさんにじゅういち','しちしにじゅうはち','しちごさんじゅうご','しちろくしじゅうに','しちしちしじゅうく','しちはごじゅうろく','しちくろくじゅうさん'],
+['はちいちがはち','はちにじゅうろく','はちさんにじゅうし','はちしさんじゅうに','はちごしじゅう','はちろくしじゅうはち','はちしちごじゅうろく','はっぱろくじゅうし','はっくしちじゅうに'],
+['くいちがく','くにじゅうはち','くさんにじゅうしち','くしさんじゅうろく','くごしじゅうご','くろくごじゅうし','くしちろくじゅうさん','くはしちじゅうに','くくはちじゅういち']];
+
+/* ---------- 音声（日本語・若い女性の声をさがす） ---------- */
+let VOICE=null;
+const VKEY='kogen-kuku-voice';
+const savedVoice=()=>{try{return localStorage.getItem(VKEY)||''}catch(e){return ''}};
+function jaVoices(){
+  if(!('speechSynthesis' in window))return [];
+  return (speechSynthesis.getVoices()||[]).filter(v=>/^ja/i.test(v.lang)||/日本語|Japanese/i.test(v.name));
+}
+function scoreVoice(v){
+  const n=v.name;let s=0;
+  if(/Natural|Online|Neural|Premium|Enhanced|Siri/i.test(n))s+=50;
+  if(/Nanami|Google.*日本語|Google Japanese/i.test(n))s+=40;
+  if(/Haruka|Ayumi|Kyoko|O-Ren|Sayaka|Mizuki|Hikari|Female|女性/i.test(n))s+=20;
+  if(/Ichiro|Keita|Otoya|Male|男性/i.test(n))s-=40;
+  return s;
+}
+function pickVoice(){
+  const ja=jaVoices();if(!ja.length)return null;
+  const sv=savedVoice(),f=sv&&ja.find(v=>v.name===sv);
+  if(f)return f;
+  return ja.slice().sort((x,y)=>scoreVoice(y)-scoreVoice(x))[0];
+}
+function voiceNote(){
+  if(!('speechSynthesis' in window))return 'この端末では音声が使えません。表示される文字を見ながら、自分で声に出して読みましょう。';
+  const ja=jaVoices();VOICE=pickVoice()||VOICE;
+  if(!ja.length)return '日本語の音声が見つかりませんでした。うまく聞こえないときは、表示される文字を見ながら自分で読みましょう。';
+  return `<label>声をえらぶ：<select id="voiceSel">${ja.map(v=>`<option value="${v.name}"${VOICE&&v.name===VOICE.name?' selected':''}>${v.name}</option>`).join('')}</select></label> <button type="button" class="btn small" id="voiceTest">試し聞き</button><br>「Natural」「Online」「Google」などの名前の声が、なめらかで聞きやすいことが多いです。`;
+}
+if('speechSynthesis' in window){try{speechSynthesis.onvoiceschanged=()=>{const el=$('#voiceNote');if(el&&!el.contains(document.activeElement))el.innerHTML=voiceNote()}}catch(e){}}
+let seq=0,curFin=null;
+function speak(text){
+  return new Promise(resolve=>{
+    let done=false,timer;
+    const fin=()=>{if(done)return;done=true;clearTimeout(timer);if(curFin===fin)curFin=null;resolve()};
+    curFin=fin;
+    const est=Math.max(1800,text.length*360);
+    if(!('speechSynthesis' in window)||typeof SpeechSynthesisUtterance==='undefined'){timer=setTimeout(fin,est);return}
+    try{
+      const u=new SpeechSynthesisUtterance(text);
+      u.lang='ja-JP';u.rate=.92;u.pitch=1.12;u.volume=1;
+      VOICE=pickVoice()||VOICE;if(VOICE)u.voice=VOICE;
+      u.onend=fin;u.onerror=fin;
+      timer=setTimeout(fin,est+4000);
+      speechSynthesis.speak(u);
+    }catch(e){timer=setTimeout(fin,est)}
+  });
+}
+
+function petals(){
+  if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  var c=document.createElement('canvas');
+  c.setAttribute('aria-hidden','true');c.id='petals';
+  c.style.cssText='position:fixed;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:50';
+  var dpr=window.devicePixelRatio||1,W=window.innerWidth,H=window.innerHeight;
+  c.width=W*dpr;c.height=H*dpr;document.body.appendChild(c);
+  var x=c.getContext('2d');x.scale(dpr,dpr);
+  var cols=['#ffb7c5','#ff9db4','#ffc8d6','#f7a1bd','#ffe1e9'],ps=[],i;
+  for(i=0;i<90;i++)ps.push({x:Math.random()*W*0.9-W*0.1,y:-30-Math.random()*H*0.6,s:7+Math.random()*9,
+    vy:1.6+Math.random()*2.4,vx:1+Math.random()*2.6,ph:Math.random()*6.28,sw:.04+Math.random()*.05,rot:Math.random()*6.28,vr:(Math.random()-.5)*.12,col:cols[i%cols.length]});
+  var t0=null;
+  function frame(ts){
+    if(t0===null)t0=ts;
+    x.clearRect(0,0,W,H);
+    var alive=0;
+    ps.forEach(function(p){
+      p.x+=p.vx+Math.sin(p.ph)*1.2;p.y+=p.vy;p.ph+=p.sw*3;p.rot+=p.vr;
+      if(p.y<H+30&&p.x<W+40)alive++;
+      x.save();x.translate(p.x,p.y);x.rotate(p.rot);x.scale(1,Math.cos(p.ph)*.8+.2);
+      x.fillStyle=p.col;x.beginPath();
+      x.moveTo(0,-p.s);x.bezierCurveTo(p.s,-p.s*.6,p.s*.8,p.s*.7,0,p.s);
+      x.bezierCurveTo(-p.s*.8,p.s*.7,-p.s,-p.s*.6,0,-p.s);x.fill();
+      x.restore();
+    });
+    if(alive>0&&ts-t0<4500)requestAnimationFrame(frame);
+    else if(c.parentNode)c.parentNode.removeChild(c);
+  }
+  requestAnimationFrame(frame);
+}
+
+const petalsBurst=()=>{petals();setTimeout(petals,900);setTimeout(petals,1800)};
+
+/* ---------- 九九の表 ---------- */
+let S={unit:null},D=null,M=null,P=null,B=null;
+const LIVE={};
+const cellCls=(a,b)=>'k'+(showCell(a,b)?' heard':'')+(okCell(a,b)?' ok':'')+(isMaster(a)?' m':'')+((S.unit&&S.unit.type==='dan'&&S.unit.n===a)?' hl':'');
+const cellHtml=(a,b)=>`<span class="${cellCls(a,b)}" data-k="${a}-${b}" style="--h:${(a-1)*40}">${showCell(a,b)?a*b:''}</span>`;
+function kukuTable(){
+  let h='<div class="ktable" role="table" aria-label="九九の表"><span class="kh">×</span>';
+  for(let b=1;b<=9;b++)h+=`<span class="kh">${b}</span>`;
+  for(let a=1;a<=9;a++){h+=`<span class="kh">${a}</span>`;for(let b=1;b<=9;b++)h+=cellHtml(a,b)}
+  return h+'</div><p class="klegend">色がついたマス ＝ 4択で正解できたマス。9つの段をぜんぶマスターすると、白帯がもらえます。</p>';
+}
+function refreshCell(a,b,pulse){
+  const el=$(`[data-k="${a}-${b}"]`);if(!el)return;
+  el.className=cellCls(a,b)+(pulse?' pulse':'');el.textContent=showCell(a,b)?a*b:'';
+}
+function markOk(a,b){const d=db(),k=a+'-'+b;d.ok[k]=(d.ok[k]||0)+1;save();refreshCell(a,b,true)}
+
+/* ---------- 4択のしくみ ---------- */
+const swap=n=>{const s=String(n);return s.length===2?+(s[1]+s[0]):n};
+function uniq3(cands,ans,filler){
+  const out=[...new Set(shuffle(cands))].filter(x=>x!==ans).slice(0,3);
+  let k=1;while(out.length<3){const x=filler(k++);if(x!==ans&&!out.includes(x))out.push(x)}
+  return out;
+}
+function mcMul(a,b){
+  const ans=a*b;
+  const c=[a*(b+1),a*(b-1),(a+1)*b,(a-1)*b,a+b,ans+1,ans-1,ans+10,ans-10,swap(ans),a*(b+2),(a+2)*b].filter(x=>x>0&&x!==ans);
+  const out=uniq3(c,ans,k=>ans+1+k);
+  return {text:`${a} × ${b}`,ans:String(ans),choices:shuffle([ans,...out]).map(String),fact:[a,b],label:`${a} × ${b}`};
+}
+function mcDivEven(d,q){
+  const a=d*q;
+  const c=[q+1,q-1,q+2,q-2,d,a-d,q*2,q-3].filter(x=>x>0&&x!==q);
+  const out=uniq3(c,q,k=>q+2+k);
+  return {text:`${a} ÷ ${d}`,ans:String(q),choices:shuffle([q,...out]).map(String),label:`${a} ÷ ${d}`};
+}
+function mcDivRem(d,q,r){
+  const a=d*q+r,f=(x,y)=>`${x}あまり${y}`,ans=f(q,r);
+  const cand=[[q,r+1],[q,r-1],[q+1,r],[q-1,r],[q+1,r-1],[r,q],[q-1,r+1],[q,d-r]].filter(([x,y])=>x>=0&&y>=0&&y<d).map(([x,y])=>f(x,y)).filter(s=>s!==ans);
+  const out=uniq3(cand,ans,k=>f(q+k,r));
+  return {text:`${a} ÷ ${d}`,ans,choices:shuffle([ans,...out]),label:`${a} ÷ ${d}`};
+}
+const genDivBasic=rem=>pickN(range(2,9),7).map(d=>{const q=rem?1+rnd(9):2+rnd(8);return rem?mcDivRem(d,q,1+rnd(d-1)):mcDivEven(d,q)});
+const genBlack=()=>shuffle(range(1,9).flatMap(a=>pickN(range(1,9),5).map(b=>mcMul(a,b))));
+const roundList=(n,r)=>(r===1?range(1,9):shuffle(range(1,9))).map(b=>mcMul(n,b));
+
+let mtok=0;
+function mcStart(list,onDone,liveId){M={list,i:0,res:[],tries:0,locked:false,timer:null,token:++mtok,onDone,liveId}}
+function mcHtml(){
+  const q=M.list[M.i],n=M.list.length;
+  const prog=n<=12?`<span class="pdots">${M.list.map((_,i)=>`<span class="pd ${i<M.i?(M.res[i]?'ok':'miss'):(i===M.i?'cur':'')}"></span>`).join('')}</span>`:`<span class="mcbarwrap"><span class="bar"><i style="width:${Math.round(M.i*100/n)}%"></i></span></span>`;
+  return `<div class="progress"><span class="pcount">${M.i+1} / ${n} 問</span>${prog}</div>
+  <div class="mcq" aria-live="polite">${q.text} ＝ <span class="qm">？</span></div>
+  <div class="mcgrid">${q.choices.map((c,i)=>`<button type="button" class="mcb${c.length>4?' long':''}" data-mc="${i}">${c}</button>`).join('')}</div>
+  <div class="msg" id="msg" role="status"></div>`;
+}
+const PRAISE=['せいかい！','そのとおり！','いいですね！','できました！','よくできました！'];
+function mcPick(i){
+  if(!M||M.locked)return;
+  const q=M.list[M.i],btn=$(`[data-mc="${i}"]`);
+  if(!btn||btn.disabled)return;
+  const msg=$('#msg');
+  if(q.choices[i]===q.ans){
+    M.locked=true;
+    M.res[M.i]=M.tries===0;
+    if(M.tries===0&&q.fact)markOk(q.fact[0],q.fact[1]);
+    btn.classList.add('right');
+    if(msg){msg.className='msg good';msg.textContent=PRAISE[rnd(PRAISE.length)]}
+    petals();
+    if(M.liveId){LIVE[M.liveId]=Math.round(M.res.filter(Boolean).length*100/M.list.length);renderNav();renderUnitBar()}
+    clearTimeout(M.timer);const tok=M.token;
+    M.timer=setTimeout(()=>{if(M&&M.token===tok)mcNext()},1100);
+  }else{
+    M.tries++;M.res[M.i]=false;
+    btn.disabled=true;btn.classList.add('wrong');
+    if(msg){msg.className='msg warn';msg.textContent='おしい。もう一度えらんでみよう。'}
+  }
+}
+function mcNext(){
+  M.i++;M.tries=0;M.locked=false;
+  if(M.i>=M.list.length){
+    const {onDone,res,list}=M,ok=res.filter(Boolean).length,score=Math.round(ok*100/list.length);
+    clearTimeout(M.timer);M=null;onDone(score,res);return;
+  }
+  const box=$('#mcbox');if(box)box.innerHTML=mcHtml();
+}
+
+/* ---------- ひっ算の部品 ---------- */
+const POS=['一の位','十の位','百の位','千の位','万の位'];
+const eq=l=>v=>`${l} ＝ ${v}`;
+const ph='<span class="ph"></span>';
+const okSpan=x=>(x===''||String(x).startsWith('<'))?x:`<span class="ok">${x}</span>`;
+function grid(rows,heads){
+  let h='<div class="hissan"><table>';
+  if(heads)h+=`<tr class="hd"><td></td>${heads.map(x=>`<td>${x}</td>`).join('')}</tr>`;
+  rows.forEach(r=>{h+=`<tr class="${r.cls||''}"><td class="sg">${r.sign||''}</td>${r.cells.map(c=>`<td>${c}</td>`).join('')}</tr>`});
+  return h+'</table></div>';
+}
+const rowDigits=(val,nc,shift=0)=>{const s=String(val),a=Array(nc).fill('');for(let i=0;i<s.length;i++){const pos=nc-1-shift-(s.length-1-i);if(pos>=0)a[pos]=s[i]}return a};
+const rowPh=(nc,shift=0)=>{const a=Array(nc).fill('');a[nc-1-shift]=ph;return a};
+
+/* かけ算：2桁・3桁 × 1桁（くり上がりを位ごとに） */
+function qMul1(a,b){
+  const ds=String(a).split('').reverse().map(Number),n=ds.length,res=a*b,rl=String(res).length,nc=Math.max(n+1,rl);
+  const steps=[],say=[],known=[],cout=[];let carry=0;
+  for(let i=0;i<n;i++){
+    const t=ds[i]*b+carry,l=`${ds[i]} × ${b}${carry?` ＋ ${carry}`:''}`;
+    steps.push({ans:t,tag:`${POS[i]}をかける${carry?`（くり上がり ${carry} をたす）`:''}`,text:eq(l)});
+    say.push(`${i?POS[i]+'へ。':'一の位から。'}${l} は？`);
+    if(i<n-1){
+      if(t>=10){steps.push({ans:t%10,tag:`${POS[i]}に書く数`,text:eq(`${POS[i]}に書く数`)});say.push(`${t} は 10以上。${POS[i]}には ${t%10} を書いて、${Math.floor(t/10)} を くり上げます。`)}
+      known[i]=steps.length;cout[i]=Math.floor(t/10);carry=Math.floor(t/10);
+    }else known[i]=steps.length;
+  }
+  say.push('できあがり。');
+  const last=known[n-1];
+  return {label:`${a} × ${b}`,steps,say,final:res,main:v=>`${a} × ${b} ＝ ${v}`,done:`${a} × ${b} ＝ ${res}`,
+    fig(stage){
+      const marks=Array(nc).fill(''),ans=Array(nc).fill('');
+      for(let i=0;i<nc;i++){
+        const kn=i<n-1?known[i]:last;
+        ans[nc-1-i]=i<rl?(stage>=kn?okSpan(String(res)[rl-1-i]):ph):'';
+        if(i<n-1&&stage>=known[i]&&cout[i]>0)marks[nc-1-(i+1)]=String(cout[i]);
+      }
+      return grid([{cells:marks,cls:'mk'},{cells:rowDigits(a,nc)},{sign:'×',cells:rowDigits(b,nc),cls:'lb'},{cells:ans}],POS.slice(0,nc).reverse());
+    }};
+}
+/* かけ算：2桁・3桁 × 2桁（一の位の答え、十の位の答え、たし算） */
+function qMul2(a,b){
+  const t=Math.floor(b/10),u=b%10,p1=a*u,p2=a*t,res=a*b,nc=String(res).length;
+  const steps=[
+    {ans:p1,tag:`一の位の ${u} をかける`,text:eq(`${a} × ${u}`)},
+    {ans:p2,tag:`十の位の ${t} をかける（1つ左にずらして書く）`,text:eq(`${a} × ${t}`)},
+    {ans:res,tag:'2つの答えをたす',text:eq(`${p1} ＋ ${p2}0`)}];
+  return {label:`${a} × ${b}`,steps,final:res,main:v=>`${a} × ${b} ＝ ${v}`,done:`${a} × ${b} ＝ ${a} × ${u} ＋ ${a} × ${t}0 ＝ ${p1} ＋ ${p2*10} ＝ ${res}`,
+    say:[`まず、一の位の ${u} をかけます。${a} × ${u} は？`,`つぎに、十の位の ${t} をかけます。答えは1つ左にずらして書きます。${a} × ${t} は？`,`2つの答えをたします。${p1} ＋ ${p2}0 は？`,'できあがり。'],
+    fig(stage){
+      const r1=stage>=1?rowDigits(p1,nc).map(okSpan):rowPh(nc);
+      const r2=stage>=2?rowDigits(p2,nc,1).map(okSpan):rowPh(nc,1);
+      const r3=stage>=3?rowDigits(res,nc).map(okSpan):rowPh(nc);
+      return grid([{cells:rowDigits(a,nc)},{sign:'×',cells:rowDigits(b,nc),cls:'lb'},{cells:r1},{sign:'＋',cells:r2,cls:'lb'},{cells:r3}]);
+    }};
+}
+const carries1=(a,b)=>{const d=String(a).split('').reverse().map(Number);let c=0,cr=0;for(let i=0;i<d.length-1;i++){const t=d[i]*b+cr;cr=Math.floor(t/10);if(cr>0)c++}return c};
+function genMul1(len){
+  const out=[],seen=new Set(),cnt={},quota=len===2?{0:2,1:5}:{0:1,1:3,2:3};let tries=0,relax=false;
+  while(out.length<7&&tries<20000){
+    tries++;if(tries>5000)relax=true;
+    const a=len===2?11+rnd(89):101+rnd(899),b=2+rnd(8);
+    if(a%10===0||seen.has(a+','+b))continue;
+    const c=Math.min(len===2?1:2,carries1(a,b));
+    if(!relax&&(cnt[c]||0)>=quota[c])continue;
+    seen.add(a+','+b);cnt[c]=(cnt[c]||0)+1;out.push(qMul1(a,b));
+  }
+  return shuffle(out);
+}
+function genMul2(len){
+  const out=[],seen=new Set();
+  while(out.length<7){
+    const a=len===2?11+rnd(89):101+rnd(899),b=11+rnd(89);
+    if(a%10===0||b%10===0||seen.has(a+','+b))continue;
+    seen.add(a+','+b);out.push(qMul2(a,b));
+  }
+  return out;
+}
+
+/* わり算のひっ算：たてる → かける → ひく → おろす */
+function divPlan(N,d){
+  const s=String(N),n=s.length,dig=s.split('').map(Number);
+  let p0=-1,cur=0;
+  for(let i=0;i<n;i++){cur=cur*10+dig[i];if(cur>=d){p0=i;break}}
+  if(p0<0)return null;
+  const items=[];let rem=0;
+  for(let j=p0;j<n;j++){
+    const c=j===p0?parseInt(s.slice(0,p0+1),10):rem*10+dig[j],q=Math.floor(c/d),prod=q*d;
+    rem=c-prod;items.push({j,cur:c,q,prod,rem});
+  }
+  return {s,n,dig,p0,items,Q:Math.floor(N/d),R:N%d};
+}
+function qDiv(N,d){
+  const pl=divPlan(N,d);if(!pl)return null;
+  const {items,n,dig}=pl,steps=[],say=[];
+  items.forEach((it,k)=>{
+    steps.push({ans:it.q,tag:`商をたてる（${it.cur} の中に ${d} はいくつ入る？）`,text:eq(`${it.cur} ÷ ${d} の商`)});
+    say.push(`${it.cur} の中に ${d} が いくつ入るかな？ 九九を使って考えます。`);
+    steps.push({ans:it.prod,tag:'かける',text:eq(`${it.q} × ${d}`)});
+    say.push(`${it.q} × ${d} は？ ${it.cur} の下に書きます。`);
+    steps.push({ans:it.rem,tag:'ひく',text:eq(`${it.cur} − ${it.prod}`)});
+    say.push(`${it.cur} − ${it.prod} は？${it.j<n-1?' ひいたら、つぎの数を おろします。':''}`);
+  });
+  say.push('できあがり。');
+  const total=steps.length,ans=`${pl.Q}${pl.R?` あまり ${pl.R}`:''}`;
+  return {label:`${N} ÷ ${d}`,steps,say,final:ans,main:v=>`${N} ÷ ${d} ＝ ${v}`,done:`${N} ÷ ${d} ＝ ${ans}`,
+    fig(stage){
+      const nc=n+2,mk=()=>Array(nc).fill(''),qrow=mk(),r1=mk(),rows=[];
+      r1[0]={h:d,cls:'dv'};dig.forEach((x,i)=>{r1[i+1]={h:x,cls:'dd'}});
+      items.forEach((it,k)=>{
+        const j=it.j+1;
+        if(stage>=3*k+1)qrow[j]={h:okSpan(it.q),cls:''};else if(stage===3*k)qrow[j]={h:ph,cls:''};
+        if(stage>=3*k+1){
+          const row=mk();
+          if(stage>=3*k+2){const ps=String(it.prod);for(let x=0;x<ps.length;x++)row[j-ps.length+1+x]={h:ps[x],cls:'ul'}}
+          else row[j]={h:ph,cls:'ul'};
+          rows.push(row);
+        }
+        if(stage>=3*k+2){
+          const row=mk();
+          if(stage>=3*k+3){
+            const rs=it.rem>0?String(it.rem):(it.j===n-1?'0':'');
+            for(let x=0;x<rs.length;x++)row[j-rs.length+1+x]={h:okSpan(rs[x]),cls:''};
+            if(it.j<n-1)row[j+1]={h:`<span class="dn">${dig[it.j+1]}</span>`,cls:''};
+          }else row[j]={h:ph,cls:''};
+          rows.push(row);
+        }
+      });
+      if(pl.R>0&&stage>=total)qrow[n+1]={h:`あまり ${pl.R}`,cls:'rl'};
+      const html=[qrow,r1,...rows].map(r=>`<tr>${r.map(c=>typeof c==='object'?`<td class="${c.cls||''}">${c.h}</td>`:'<td></td>').join('')}</tr>`).join('');
+      return `<div class="hissan"><table class="divt">${html}</table></div>`;
+    }};
+}
+const DCFG={'21':{d:[2,9],Q:[10,49],a:[10,99]},'31':{d:[2,9],Q:[12,499],a:[100,999]},'22':{d:[11,49],Q:[2,9],a:[10,99]},'32':{d:[11,49],Q:[5,89],a:[100,999]}};
+function genDiv(kind,rem){
+  const c=DCFG[kind],out=[],seen=new Set();let tries=0;
+  while(out.length<7&&tries<50000){
+    tries++;
+    const d=c.d[0]+rnd(c.d[1]-c.d[0]+1),Q=c.Q[0]+rnd(c.Q[1]-c.Q[0]+1),r=rem?1+rnd(d-1):0,a=d*Q+r;
+    if(a<c.a[0]||a>c.a[1]||(d>=10&&d%10===0)||seen.has(a+','+d))continue;
+    const q=qDiv(a,d);if(!q)continue;
+    seen.add(a+','+d);out.push(q);
+  }
+  return out;
+}
+
+/* ---------- 単元の一覧 ---------- */
+const GROUPS=['九九の段','段位の帯','かけ算のひっ算','わり算（あまりなし）','わり算（あまりあり）'];
+const DR=(id,g,no,short,title,desc,o)=>Object.assign({id,type:'drill',g,no,short,title,desc},o);
+const DIVD='「たてる → かける → ひく → おろす」をくり返します。商は九九を使って考えます。';
+const UNITS=[
+ ...range(1,9).map(n=>({id:'d'+n,type:'dan',n,g:0,no:String(n),short:n+'の段',title:n+'の段',
+   desc:'「挑戦」で九九を声で聞き、「覚えました」で4択の確認へ進みます。1回目は順番、2回目と3回目はランダム。3回目で80%以上ならマスターです。'})),
+ {id:'white',type:'white',g:1,no:'白',short:'白帯',title:'白帯',desc:'1〜9の段をぜんぶマスターすると、白帯が授与されます。'},
+ {id:'black',type:'black',g:1,no:'黒',short:'黒帯チャレンジ',title:'黒帯チャレンジ',desc:'1〜9の段からランダムに45問。80%以上で黒帯が授与されます。何度でもチャレンジできます。'},
+ DR('x21',2,'①','2桁×1桁','2桁×1桁のひっ算','一の位から順にかけます。10以上になったら、十の位の数を上にくり上げて、つぎの位にたします。1回7問です。',{kind:'steps',ex:()=>[[34,6],[78,4]].map(p=>qMul1(...p)),make:()=>genMul1(2)}),
+ DR('x22',2,'②','2桁×2桁','2桁×2桁のひっ算','一の位の数、十の位の数を別々にかけて、最後にたします。十の位をかけた答えは、1つ左にずらして書きます。1回7問です。',{kind:'steps',ex:()=>[[34,12],[46,23]].map(p=>qMul2(...p)),make:()=>genMul2(2)}),
+ DR('x31',2,'③','3桁×1桁','3桁×1桁のひっ算','一の位から順にかけ、くり上がりをわすれずにたします。1回7問です。',{kind:'steps',ex:()=>[[243,3],[385,6]].map(p=>qMul1(...p)),make:()=>genMul1(3)}),
+ DR('x32',2,'④','3桁×2桁','3桁×2桁のひっ算','2桁×2桁と同じ考え方です。一の位の数、十の位の数を別々にかけて、最後にたします。1回7問です。',{kind:'steps',ex:()=>[[234,12],[345,23]].map(p=>qMul2(...p)),make:()=>genMul2(3)}),
+ DR('v0',3,'①','九九の範囲','わり算（九九の範囲・あまりなし）','12÷3 は「3に何をかけると12か」を考えます。九九を思い出して、4つの答えから選びます。1回7問です。',{kind:'mc',make:()=>genDivBasic(false)}),
+ DR('v21',3,'②','2桁÷1桁','2桁÷1桁のわり算のひっ算','【あまりなし】'+DIVD+'1回7問です。',{kind:'steps',ex:()=>[[84,4],[96,3]].map(p=>qDiv(...p)),make:()=>genDiv('21',false)}),
+ DR('v31',3,'③','3桁÷1桁','3桁÷1桁のわり算のひっ算','【あまりなし】'+DIVD+'1回7問です。',{kind:'steps',ex:()=>[[756,3],[512,8]].map(p=>qDiv(...p)),make:()=>genDiv('31',false)}),
+ DR('v22',3,'④','2桁÷2桁','2桁÷2桁のわり算のひっ算','【あまりなし】'+DIVD+'1回7問です。',{kind:'steps',ex:()=>[[96,12],[84,21]].map(p=>qDiv(...p)),make:()=>genDiv('22',false)}),
+ DR('v32',3,'⑤','3桁÷2桁','3桁÷2桁のわり算のひっ算','【あまりなし】'+DIVD+'1回7問です。',{kind:'steps',ex:()=>[[432,12],[666,18]].map(p=>qDiv(...p)),make:()=>genDiv('32',false)}),
+ DR('r0',4,'①','九九の範囲','わり算（九九の範囲・あまりあり）','17÷5 は、5の段で17にいちばん近い（こえない）15を探します。商は3、あまりは2です。あまりは、わる数より小さくなります。1回7問です。',{kind:'mc',make:()=>genDivBasic(true)}),
+ DR('r21',4,'②','2桁÷1桁','2桁÷1桁のわり算のひっ算','【あまりあり】'+DIVD+'さいごに のこった数が あまり です。1回7問です。',{kind:'steps',ex:()=>[[85,4],[97,3]].map(p=>qDiv(...p)),make:()=>genDiv('21',true)}),
+ DR('r31',4,'③','3桁÷1桁','3桁÷1桁のわり算のひっ算','【あまりあり】'+DIVD+'さいごに のこった数が あまり です。1回7問です。',{kind:'steps',ex:()=>[[758,3],[515,8]].map(p=>qDiv(...p)),make:()=>genDiv('31',true)}),
+ DR('r22',4,'④','2桁÷2桁','2桁÷2桁のわり算のひっ算','【あまりあり】'+DIVD+'さいごに のこった数が あまり です。1回7問です。',{kind:'steps',ex:()=>[[95,21],[89,12]].map(p=>qDiv(...p)),make:()=>genDiv('22',true)}),
+ DR('r32',4,'⑤','3桁÷2桁','3桁÷2桁のわり算のひっ算','【あまりあり】'+DIVD+'さいごに のこった数が あまり です。1回7問です。',{kind:'steps',ex:()=>[[437,12],[670,18]].map(p=>qDiv(...p)),make:()=>genDiv('32',true)})
+];
+
+/* ---------- 一覧・見出し ---------- */
+function barHtml(pct,label,mark,green){
+  return `<span class="bar${green?' ok':''}" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}" aria-label="${label}"><i style="width:${pct}%"></i>${mark?`<u style="left:${PASS}%"></u>`:''}</span>`;
+}
+function unitView(u){
+  const d=db();
+  if(u.type==='dan'){
+    const m=isMaster(u.n),c=rowColored(u.n),rs=(d.dan[u.n]||{}).rounds||[],l=rs[rs.length-1];
+    return {stat:m?'マスター ✓':(l?`${l.r}回目 ${l.s}点`:(c?`${c} / 9`:'')),val:m?100:Math.round(c*100/9),green:m,mark:false,passed:m};
+  }
+  if(u.type==='white'){const m=masters();return {stat:d.white?'授与 ✓':`${m} / 9`,val:Math.round(m*100/9),green:!!d.white,mark:false,passed:!!d.white}}
+  const sc=u.type==='black'?d.black:(d.units[u.id]||[]);
+  const live=LIVE[u.id],last=sc.length?sc[sc.length-1]:0,ever=u.type==='black'?!!d.blackBelt:sc.some(s=>s>=PASS);
+  const val=live!==undefined?live:last;
+  let stat;
+  if(u.type==='black'&&!d.white&&!d.blackBelt)stat='白帯のあと';
+  else if(live!==undefined)stat='挑戦中';
+  else if(!sc.length)stat='';
+  else if(u.type==='black')stat=d.blackBelt?'授与 ✓':`${last}点`;
+  else if(last>=PASS)stat='合格 ✓';
+  else if(ever)stat='合格済 ✓';
+  else stat=`${last}点`;
+  return {stat,val,green:val>=PASS,mark:true,passed:ever};
+}
+function renderNav(){
+  let h='';
+  GROUPS.forEach((gn,gi)=>{
+    const inG=UNITS.filter(u=>u.g===gi),done=inG.filter(u=>unitView(u).passed).length;
+    h+=`<div class="grow"><div class="gname"><b>${gn}</b><span class="gcount">${done} / ${inG.length} ${gi===0?'マスター':(gi===1?'授与':'合格')}</span></div><div class="ugrid">`;
+    inG.forEach(u=>{
+      const v=unitView(u);
+      h+=`<button type="button" class="unit${v.passed?' passed':''}" data-unit="${u.id}"${u.id===S.unit.id?' aria-current="true"':''}><span class="u-top"><span class="u-no">${u.no}</span><span class="u-stat">${v.stat}</span></span><span class="u-title">${u.short}</span>${barHtml(v.val,u.short+'の達成度',v.mark,v.green)}</button>`;
+    });
+    h+='</div></div>';
+  });
+  h+=`<p class="ilegend"><span class="lg-line"></span>棒の縦線は合格ライン（${PASS}点）。超えると緑になります。</p>`;
+  $('#nav').innerHTML=h;
+  const tc=totalColored();
+  $('#overall').innerHTML=`<span class="ostat"><b>${tc}</b><span>/ 81　九九の表の色づけ</span></span>${barHtml(Math.round(tc*100/81),'九九の表の色づけ',false,tc===81)}`;
+  renderBelt();
+}
+function renderBelt(){
+  const d=db(),k=d.blackBelt?'black':(d.white?'white':'none'),t={black:'黒帯',white:'白帯',none:'帯なし'}[k];
+  $('#beltChip').innerHTML=`<span class="belt ${k}"></span><span class="btxt"><small>いまの段位</small><b>${t}</b></span>`;
+}
+function renderScoreLine(){
+  const u=S.unit,d=db();let t='';
+  if(u.type==='dan'){const rs=(d.dan[u.n]||{}).rounds||[];if(rs.length)t=rs.slice(-6).map(x=>`${x.r}回目 ${x.s}点`).join('　')}
+  else if(u.type==='black'){if(d.black.length)t=d.black.map((s,i)=>`${i+1}回目 ${s}点${s>=PASS?' ✓':''}`).join('　')}
+  else if(u.type==='drill'){const sc=d.units[u.id]||[];if(sc.length)t=sc.map((s,i)=>`${i+1}回目 ${s}点${s>=PASS?' ✓':''}`).join('　')}
+  $('#scoreLine').textContent=t?'点数の記録　'+t:'';
+}
+function renderUnitBar(){
+  const u=S.unit,v=unitView(u),d=db();let txt;
+  if(u.type==='dan'){const c=rowColored(u.n);txt=isMaster(u.n)?'<b class="pass">マスター！</b>':`表の色づけ ${c} / 9　（3回目の確認で${PASS}%以上でマスター）`}
+  else if(u.type==='white')txt=d.white?'<b class="pass">白帯 授与済み</b>':`マスターした段 ${masters()} / 9`;
+  else{
+    const sc=u.type==='black'?d.black:(d.units[u.id]||[]),live=LIVE[u.id],n=sc.length,last=sc[n-1]||0,best=n?Math.max(...sc):0;
+    if(u.type==='black'&&!d.white&&!d.blackBelt)txt='白帯をとってから挑戦できます';
+    else if(live!==undefined)txt=`${n+1}回目に挑戦中　いま ${live}点`;
+    else if(!n)txt=`${PASS}点以上で合格${u.type==='black'?'（黒帯）':''}です`;
+    else if(last>=PASS)txt=`<b class="pass">${u.type==='black'?'黒帯 合格！':'合格 やったね！'}</b>${n}回目 ${last}点`;
+    else if(best>=PASS)txt=`<b class="pass">合格済み</b>（最高 ${best}点）　${n}回目 ${last}点`;
+    else txt=`${n}回目 ${last}点　合格まで あと ${PASS-last}点`;
+  }
+  $('#unitBar').innerHTML=`<div class="ubar">${barHtml(v.val,'達成度',v.mark,v.green)}<p class="ustat">${txt}</p></div>`;
+}
+function renderHead(){
+  const u=S.unit;
+  $('#stepNo').textContent=GROUPS[u.g];
+  $('#stepTitle').textContent=u.title;
+  $('#stepDesc').textContent=u.desc;
+  $('#seg').hidden=!(u.type==='drill'&&u.ex);
+  const ex=P&&P.mode==='explain';
+  $('#tabExplain').setAttribute('aria-pressed',!!ex);
+  $('#tabPractice').setAttribute('aria-pressed',!ex);
+  renderScoreLine();renderUnitBar();
+}
+function renderAll(){renderNav();renderHead();renderView()}
+function renderView(){
+  const u=S.unit;
+  if(u.type==='dan')renderDan();else if(u.type==='white')renderWhite();else if(u.type==='black')renderBlack();else renderDrill();
+}
+function stopAll(){
+  seq++;
+  try{if('speechSynthesis' in window)speechSynthesis.cancel()}catch(e){}
+  if(M){clearTimeout(M.timer);M=null}
+}
+function setUnit(id){
+  stopAll();
+  if(S.unit&&LIVE[S.unit.id]!==undefined)delete LIVE[S.unit.id];
+  S.unit=UNITS.find(u=>u.id===id);D=null;P=null;B=null;
+  const u=S.unit;
+  if(u.type==='dan')D={n:u.n,mode:'intro',round:1,listened:range(1,9).every(b=>db().heard[u.n+'-'+b])};
+  if(u.type==='black')B={mode:'intro'};
+  if(u.type==='drill'){P={mode:u.ex?'explain':'intro'};if(u.ex){P.exList=u.ex();P.ex=0;P.stage=0}}
+  renderAll();
+}
+
+/* ---------- 九九の段（声 → 4択 3回 → マスター） ---------- */
+function ceremonyHtml(kind){
+  const d=db(),date=kind==='white'?d.white:d.blackBelt;
+  return `<div class="cere"><span class="belt big ${kind}"></span><p class="passbanner">${kind==='white'?'白帯':'黒帯'} 授与！</p>${date&&date!==true?`<p class="needmore">${date} に授与されました。</p>`:''}</div>`;
+}
+function danActionsHtml(){
+  if(D.mode==='listening')return '<button type="button" class="btn primary" id="danSkip">声をとばして つぎへ</button><button type="button" class="btn" id="danSkipAll">声をぜんぶとばす</button><button type="button" class="btn" id="danStop">とめる</button>';
+  if(D.mode==='listenDone')return '<button type="button" class="btn" id="danRepeat">くりかえす</button><button type="button" class="btn primary" id="danOk">覚えました</button><button type="button" class="btn" id="danFree">4択で自由に練習</button>';
+  return '<button type="button" class="btn primary" id="danStart">挑戦（声を聞く）</button><button type="button" class="btn" id="danSkipAll">声なしで 表を見る</button>'+(D.listened?'<button type="button" class="btn" id="danOk">覚えました</button>':'')+'<button type="button" class="btn" id="danFree">4択で自由に練習</button>';
+}
+function renderDan(){
+  const n=D.n;let card;
+  if(D.mode==='quiz')card=`<div class="card"><p class="cardhead">${n}の段　${D.free?'自由に練習（記録なし・ランダム）':D.round+'回目（'+['','順番に','ランダム','確認・ランダム'][D.round]+'）'}</p><div id="mcbox">${mcHtml()}</div></div>`;
+  else if(D.mode==='round')card=`<div class="card">${danRoundHtml()}</div>`;
+  else card=`<div class="card"><div class="vpop" id="pop"><div class="popread">「挑戦」を押すと、${n}の段を声で読みます。読むたびに式が出て、右の表に答えが入ります。</div></div><div class="popcount" id="popcount"></div><div class="actions" id="danActions">${danActionsHtml()}</div><div class="vnote" id="voiceNote">${voiceNote()}</div></div>`;
+  $('#view').innerHTML=`<div class="work">${card}<div class="card tcard">${kukuTable()}</div></div>`;
+}
+function showPop(n,b){
+  $('#pop').innerHTML=`<div class="popeq" style="--h:${(n-1)*40}">${n} × ${b} ＝ <b>${n*b}</b></div><div class="popread">${YOMI[n][b-1]}</div>`;
+  $('#popcount').textContent=`${b} / 9`;
+  db().heard[n+'-'+b]=1;save();refreshCell(n,b,true);
+}
+function runListen(){
+  const n=D.n,tok=++seq;
+  D.mode='listening';$('#danActions').innerHTML=danActionsHtml();
+  try{if('speechSynthesis' in window)speechSynthesis.cancel()}catch(e){}
+  let b=0;
+  const next=()=>{
+    if(tok!==seq)return;
+    if(b>=9){D.mode='listenDone';D.listened=true;$('#danActions').innerHTML=danActionsHtml();$('#popcount').textContent='読み終わりました。もう一度聞くなら「くりかえす」、覚えたら「覚えました」を押します。';return}
+    b++;showPop(n,b);
+    speak(YOMI[n][b-1]).then(()=>{if(tok===seq)setTimeout(next,380)});
+  };
+  next();
+}
+function skipAll(){
+  seq++;try{speechSynthesis.cancel()}catch(e){}
+  const n=D.n,d=db();range(1,9).forEach(b=>{d.heard[n+'-'+b]=1;refreshCell(n,b,true)});save();
+  D.mode='listenDone';D.listened=true;
+  $('#pop').innerHTML=`<div class="popread">${n}の段の答えを、右の表に出しました。声に出して読んでみよう。</div>`;
+  $('#popcount').textContent='読み終わりました。もう一度聞くなら「くりかえす」、覚えたら「覚えました」を押します。';
+  $('#danActions').innerHTML=danActionsHtml();
+}
+function startFree(){
+  stopAll();D.free=true;D.freeDone=false;D.mode='quiz';
+  mcStart(shuffle(range(1,9)).map(b=>mcMul(D.n,b)),sc=>{D.score=sc;D.freeDone=true;D.mode='round';renderDan();renderNav();if(sc===100)petalsBurst()});
+  renderDan();
+}
+function startRound(r){
+  stopAll();D.free=false;D.freeDone=false;D.round=r;D.mode='quiz';
+  mcStart((r===1?range(1,9):shuffle(range(1,9))).map(b=>mcMul(D.n,b)),danRoundDone);
+  renderDan();
+}
+function danRoundDone(score){
+  const n=D.n,d=db(),dd=d.dan[n]=d.dan[n]||{rounds:[]};
+  dd.rounds.push({r:D.round,s:score});
+  D.score=score;D.mode='round';D.justMaster=false;D.justWhite=false;
+  if(D.round===3&&score>=PASS){
+    D.justMaster=true;
+    if(!dd.master){dd.master=true;if(masters()===9&&!d.white){d.white=today();D.justWhite=true}}
+  }
+  save();renderDan();renderNav();renderHead();
+  if(D.justMaster)petalsBurst();
+}
+function danRoundHtml(){
+  const n=D.n,r=D.round,s=D.score,d=db();
+  if(D.freeDone)return `<h3 class="rtitle">${n}の段　自由に練習　${s}点</h3><p>${s===100?'ぜんぶ ひとりで正解しました！':'まちがえたところは、もう一度やってみよう。'}（この練習は点数の記録に入りません。正解したマスには色がつきます）</p><div class="actions"><button type="button" class="btn primary" id="danFree">もう一度 練習</button><button type="button" class="btn" id="danListen">声を聞く</button><button type="button" class="btn" id="danOk">確認テスト（1回目）へ</button></div>`;
+  let h=`<h3 class="rtitle">${n}の段　${r}回目　${s}点</h3>`;
+  if(r<3)h+=`<p>つぎは ${r+1}回目（${r===1?'ランダム':'確認・ランダム'}）です。</p><div class="actions"><button type="button" class="btn primary" id="danNext">${r+1}回目へ</button><button type="button" class="btn" id="danListen">もう一度 声を聞く</button></div>`;
+  else if(s>=PASS){
+    h+=`<p class="passbanner">${n}の段 マスター！</p>${D.justWhite?ceremonyHtml('white'):''}<div class="actions">`+
+      (n<9?`<button type="button" class="btn primary" data-go="d${n+1}">${n+1}の段へ</button>`:'')+
+      (d.white?`<button type="button" class="btn${n<9?'':' primary'}" data-go="${d.blackBelt?'white':'black'}">${d.blackBelt?'白帯のページへ':'黒帯チャレンジへ'}</button>`:'')+
+      '<button type="button" class="btn" id="danRetry">もう一度 確認する</button></div>';
+  }else h+=`<p class="needmore">マスターまで あと ${PASS-s}点（${PASS}点以上）です。もう一度ためしてみよう。</p><div class="actions"><button type="button" class="btn primary" id="danRetry">もう一度 確認（3回目）</button><button type="button" class="btn" id="danListen">もう一度 声を聞く</button></div>`;
+  return h;
+}
+
+/* ---------- 白帯・黒帯 ---------- */
+function renderWhite(){
+  const d=db(),m=masters();
+  const card=d.white
+    ?`<div class="card">${ceremonyHtml('white')}<p>つぎは黒帯チャレンジです。1〜9の段からランダムに出ます。</p><div class="actions"><button type="button" class="btn primary" data-go="black">黒帯に挑戦</button></div></div>`
+    :`<div class="card"><h3 class="rtitle">白帯まで あと ${9-m} 段</h3><p>マスターした段：<b>${m}</b> / 9。まだの段をえらんで、挑戦しましょう。</p><div class="dangrid">${range(1,9).map(n=>`<button type="button" class="btn dbtn${isMaster(n)?' done':''}" data-go="d${n}">${n}の段${isMaster(n)?' ✓':''}</button>`).join('')}</div></div>`;
+  $('#view').innerHTML=`<div class="work">${card}<div class="card tcard">${kukuTable()}</div></div>`;
+}
+function renderBlack(){
+  const d=db();let card;
+  if(!d.white&&!d.blackBelt)card=`<div class="card"><h3 class="rtitle">まず白帯から</h3><p>黒帯チャレンジは、白帯（1〜9の段をすべてマスター）のあとに挑戦できます。いま ${masters()} / 9 の段をマスターしています。</p><div class="actions"><button type="button" class="btn primary" data-go="white">白帯のページへ</button></div></div>`;
+  else if(B.mode==='quiz')card=`<div class="card"><p class="cardhead">黒帯チャレンジ（45問・ランダム）</p><div id="mcbox">${mcHtml()}</div></div>`;
+  else if(B.mode==='result')card=`<div class="card">${blackResultHtml()}</div>`;
+  else card=`<div class="card"><h3 class="rtitle">黒帯チャレンジ</h3><p>1〜9の段からランダムに45問。${PASS}%以上（36問以上）で黒帯です。</p>${d.blackBelt?ceremonyHtml('black'):''}<div class="actions"><button type="button" class="btn primary" id="blkStart">はじめる</button></div></div>`;
+  $('#view').innerHTML=`<div class="work">${card}<div class="card tcard">${kukuTable()}</div></div>`;
+}
+function blkStart(){stopAll();B.mode='quiz';mcStart(genBlack(),blkDone);renderBlack()}
+function blkDone(score){
+  const d=db();d.black.push(score);B.mode='result';B.score=score;B.first=false;
+  if(score>=PASS&&!d.blackBelt){d.blackBelt=today();B.first=true}
+  save();renderBlack();renderNav();renderHead();
+  if(score>=PASS)petalsBurst();
+}
+function blackResultHtml(){
+  const s=B.score,n=db().black.length;
+  let h=`<h3 class="rtitle">${n}回目　${s}点</h3>`;
+  if(s>=PASS)h+=`<p class="passbanner">黒帯 合格！</p>${B.first?ceremonyHtml('black'):''}`;
+  else h+=`<p class="needmore">黒帯まで あと ${PASS-s}点（${PASS}点以上）です。色がついていないマスを、もう一度 九九の段で練習してみよう。</p>`;
+  return h+'<div class="actions"><button type="button" class="btn primary" id="blkAgain">もう一度チャレンジ</button><button type="button" class="btn" data-go="white">白帯のページへ</button></div>';
+}
+
+/* ---------- ひっ算・わり算の練習 ---------- */
+function linesHtml(q,stage,buf){
+  const n=q.steps.length;let h='<div class="lines">';
+  if(q.main)h+=`<div class="main">${q.main(stage>=n?`<span class="ans">${q.final}</span>`:'<span class="sq">□</span>')}</div>`;
+  for(let i=0;i<=Math.min(stage,n-1);i++){
+    const s=q.steps[i],tag=s.tag?`<span class="tag">${s.tag}</span>`:'';
+    if(i<stage)h+=`<div class="line done">${tag}<span class="eq">${s.text(`<span class="ans">${s.ans}</span>`)}</span></div>`;
+    else h+=`<div class="line active">${tag}<span class="eq">${s.text(`<span class="blank" id="blank">${buf===null?'？':(buf||'&nbsp;')}</span>`)}</span></div>`;
+  }
+  return h+'</div>';
+}
+function renderDrill(){
+  if(!P)return;
+  if(P.mode==='explain')return drExplain();
+  if(P.mode==='intro')return drIntro();
+  if(P.finished)return drResult();
+  return S.unit.kind==='mc'?drMC():drSteps();
+}
+function drIntro(){
+  $('#view').innerHTML=`<div class="work one"><div class="card"><h3 class="rtitle">${S.unit.title}</h3><p>${S.unit.desc}</p><div class="actions"><button type="button" class="btn primary" id="drStart">はじめる</button></div></div></div>`;
+}
+function drExplain(){
+  const q=P.exList[P.ex],n=q.steps.length,st=P.stage,last=P.ex===P.exList.length-1;
+  const nextLabel=st<n?'つぎへ':(last?'れんしゅうを はじめる':'つぎの れい');
+  $('#view').innerHTML=`<div class="work"><div class="card"><p class="cardhead">れい ${P.ex+1} / ${P.exList.length}</p><div class="figbody">${q.fig(st)}</div></div>
+  <div class="card">${linesHtml(q,st,null)}<p class="say">${q.say[st]}</p>${st>=n?`<div class="donebox">${q.done}</div>`:''}
+  <div class="navbtns"><button type="button" class="btn" id="exPrev"${P.ex===0&&st===0?' disabled':''}>もどる</button><button type="button" class="btn primary" id="exNext">${nextLabel}</button></div></div></div>`;
+}
+function exNext(){
+  const q=P.exList[P.ex],n=q.steps.length;
+  if(P.stage<n)P.stage++;
+  else if(P.ex<P.exList.length-1){P.ex++;P.stage=0}
+  else{drStart();return}
+  drExplain();
+}
+function exPrev(){
+  if(P.stage>0)P.stage--;
+  else if(P.ex>0){P.ex--;P.stage=P.exList[P.ex].steps.length}
+  drExplain();
+}
+function drStart(list,retry){
+  stopAll();
+  const u=S.unit;
+  Object.assign(P,{mode:'practice',retry:!!retry,list:list||u.make(),i:0,stage:0,buf:'',att:0,hint:false,msg:null,qmiss:false,helped:false,res:[],finished:false});
+  if(!retry)LIVE[u.id]=0;
+  if(u.kind==='mc')mcStart(P.list,(score,res)=>{P.res=res.map(Boolean);drFinish()},retry?null:u.id);
+  renderAll();
+}
+function drFinish(){
+  P.finished=true;
+  P.score=Math.round(P.res.filter(Boolean).length*100/P.list.length);
+  if(!P.retry){delete LIVE[S.unit.id];const d=db();(d.units[S.unit.id]=d.units[S.unit.id]||[]).push(P.score);save()}
+  M=null;renderAll();
+  if(!P.retry&&P.score>=PASS)petalsBurst();
+}
+function drMC(){
+  $('#view').innerHTML=`<div class="work one"><div class="card mccard"><div id="mcbox">${mcHtml()}</div></div></div>`;
+}
+function keypadHtml(){
+  let h='<div class="keypad">';
+  ['7','8','9','4','5','6','1','2','3','back','0','enter'].forEach(k=>{
+    if(k==='back')h+='<button type="button" class="key" data-key="back" aria-label="1文字消す">⌫</button>';
+    else if(k==='enter')h+='<button type="button" class="key enter" data-key="enter">決定</button>';
+    else h+=`<button type="button" class="key" data-key="${k}">${k}</button>`;
+  });
+  return h+'</div>';
+}
+function drSteps(){
+  const q=P.list[P.i],n=q.steps.length,done=P.stage>=n,lastQ=P.i===P.list.length-1;
+  const dots=P.list.map((_,i)=>`<span class="pd ${i<P.i?(P.res[i]?'ok':'miss'):(i===P.i?'cur':'')}"></span>`).join('');
+  let side=linesHtml(q,P.stage,P.buf)+`<div class="msg ${P.msg?P.msg.type:''}" id="msg" role="status">${P.msg?P.msg.text:''}</div>`;
+  if(done)side+=`<div class="donebox">${q.done}</div><div class="actions"><button type="button" class="btn primary" id="nextQ">${lastQ?'けっかを見る':'つぎの問題へ'}</button></div>`;
+  else side+=`<div class="hintbox" id="hint"${P.hint?'':' hidden'}>${q.say[P.stage]}</div>${keypadHtml()}<div class="actions"><button type="button" class="btn" id="hintBtn">ヒントを見る</button></div>`;
+  $('#view').innerHTML=`<div class="progress"><span class="pcount">${P.i+1} / ${P.list.length} 問</span><span class="pdots">${dots}</span></div><div class="work"><div class="card"><div class="figbody">${q.fig(P.stage)}</div></div><div class="card">${side}</div></div>`;
+}
+function setMsg(type,text){P.msg={type,text};const m=$('#msg');if(m){m.className='msg '+type;m.textContent=text}}
+function updateBlank(){const b=$('#blank');if(b)b.innerHTML=P.buf||'&nbsp;'}
+function press(d){if(!P||P.mode!=='practice'||P.finished||S.unit.kind!=='steps')return;if(P.stage>=P.list[P.i].steps.length)return;if(P.buf.length<4){P.buf+=d;updateBlank()}}
+function backspace(){if(!P||P.finished)return;P.buf=P.buf.slice(0,-1);updateBlank()}
+function afterDone(){
+  P.res[P.i]=!P.qmiss;
+  if(!P.retry){LIVE[S.unit.id]=Math.round(P.res.filter(Boolean).length*100/P.list.length);renderNav();renderUnitBar()}
+}
+function submit(){
+  if(!P||P.mode!=='practice'||P.finished||S.unit.kind!=='steps')return;
+  const q=P.list[P.i],n=q.steps.length;
+  if(P.stage>=n){nextQ();return}
+  if(P.buf===''){setMsg('warn','数字を入れてから「決定」を押してね。');return}
+  const step=q.steps[P.stage];
+  if(+P.buf===step.ans){
+    P.stage++;P.buf='';P.att=0;P.hint=false;
+    P.msg={type:'good',text:PRAISE[rnd(PRAISE.length)]};
+    drSteps();
+    if(P.stage>=n){afterDone();if(!P.helped)petals()}
+  }else{
+    P.att++;P.qmiss=true;P.buf='';updateBlank();
+    const b=$('#blank');if(b){b.classList.remove('shake');void b.offsetWidth;b.classList.add('shake')}
+    if(P.att>=3){
+      P.msg={type:'warn',text:`答えは ${step.ans} です。図を見て、いっしょに確かめましょう。`};
+      P.helped=true;P.stage++;P.att=0;P.hint=false;drSteps();
+      if(P.stage>=n)afterDone();
+    }else if(P.att===2){P.hint=true;const h=$('#hint');if(h)h.hidden=false;setMsg('warn','もう一度。ヒントを出しました。図を見ながら考えてみよう。')}
+    else setMsg('warn','おしい。もう一度 考えてみよう。');
+  }
+}
+function nextQ(){
+  P.res[P.i]=!P.qmiss;
+  P.i++;P.stage=0;P.buf='';P.att=0;P.hint=false;P.msg=null;P.qmiss=false;P.helped=false;
+  if(P.i>=P.list.length){drFinish();return}
+  drSteps();
+}
+function drResult(){
+  const total=P.list.length,ok=P.res.filter(Boolean).length,u=S.unit,idx=UNITS.indexOf(u),nextU=UNITS[idx+1];
+  const missed=P.list.filter((_,i)=>!P.res[i]);S.missed=missed;
+  let h=`<div class="card result"><h3>${ok===total?'ぜんぶ ひとりで できました！':`${total}問中 ${ok}問、ひとりで できました`}</h3>`;
+  if(P.retry)h+='<p>やり直しの結果です（点数の記録には入りません）。</p>';
+  else{
+    if(P.score>=PASS)h+='<p class="passbanner">合格 やったね！</p>';
+    else h+=`<p class="needmore">合格まで あと ${PASS-P.score}点（${PASS}点以上で合格）。もう一度ためしてみよう。</p>`;
+    const all=db().units[u.id]||[],st0=Math.max(0,all.length-8);
+    h+='<p class="scores">'+all.slice(st0).map((s,i)=>`<span class="scorebox${st0+i===all.length-1?' now':''}"><small>${st0+i+1}回目</small><b>${s}点${s>=PASS?' ✓':''}</b></span>`).join('')+'</p>';
+  }
+  if(missed.length)h+=`<p>もう一度やってみたい問題：</p><ul class="misslist">${missed.map(q=>`<li>${q.label}</li>`).join('')}</ul>`;
+  h+='<div class="actions">';
+  if(missed.length)h+='<button type="button" class="btn primary" data-act="retry">まちがえた問題だけ やり直す</button>';
+  h+=`<button type="button" class="btn${missed.length?'':' primary'}" data-act="again">新しい問題でもう一度</button>`;
+  if(nextU&&nextU.type==='drill')h+=`<button type="button" class="btn" data-go="${nextU.id}">つぎの単元へ（${nextU.short}）</button>`;
+  if(u.ex)h+='<button type="button" class="btn" data-act="explain">せつめいを見る</button>';
+  h+='</div></div>';
+  $('#view').innerHTML=`<div class="work one">${h}</div>`;
+}
+
+/* ---------- 操作 ---------- */
+function goPanel(){const p=$('.panel');if(p)p.scrollIntoView({block:'start',behavior:window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})}
+let navOpen=true;
+try{navOpen=localStorage.getItem('kogen-kuku-nav')!=='0'}catch(e){}
+function applyNav(){const n=$('#nav'),b=$('#navToggle');n.hidden=!navOpen;b.setAttribute('aria-expanded',navOpen);b.textContent=navOpen?'一覧をとじる':'単元一覧をひらく'}
+document.addEventListener('click',e=>{
+  const t=e.target;let el;
+  if((el=t.closest('[data-unit]'))){setUnit(el.dataset.unit);goPanel();return}
+  if((el=t.closest('[data-go]'))){setUnit(el.dataset.go);goPanel();return}
+  if(t.closest('#navToggle')){navOpen=!navOpen;applyNav();try{localStorage.setItem('kogen-kuku-nav',navOpen?'1':'0')}catch(err){}return}
+  if(t.closest('#notesClose')){const nd=$('.notes');nd.open=false;nd.scrollIntoView({block:'nearest'});return}
+  if(t.closest('#resetBtn')){
+    const rb=$('#resetBtn');
+    if(rb.dataset.armed){mem={heard:{},ok:{},dan:{},units:{},black:[]};save();rb.dataset.armed='';rb.textContent='記録を消す';setUnit(S.unit.id)}
+    else{rb.dataset.armed='1';rb.textContent='もう一度押すと、すべての記録が消えます';setTimeout(()=>{rb.dataset.armed='';rb.textContent='記録を消す'},4000)}
+    return;
+  }
+  if((el=t.closest('[data-mc]'))){mcPick(+el.dataset.mc);return}
+  if(t.closest('#voiceTest')){try{speechSynthesis.cancel()}catch(err){}speak('いんいちがいち、いんにがに、いんさんがさん');return}
+  if(t.closest('#danStart')||t.closest('#danRepeat')){runListen();return}
+  if(t.closest('#danStop')){seq++;try{speechSynthesis.cancel()}catch(err){}D.mode=D.listened?'listenDone':'intro';$('#danActions').innerHTML=danActionsHtml();return}
+  if(t.closest('#danSkip')){if(curFin)curFin();try{speechSynthesis.cancel()}catch(err){}return}
+  if(t.closest('#danSkipAll')){skipAll();return}
+  if(t.closest('#danFree')){startFree();return}
+  if(t.closest('#danOk')){startRound(1);return}
+  if(t.closest('#danNext')){startRound(D.round+1);return}
+  if(t.closest('#danRetry')){startRound(3);return}
+  if(t.closest('#danListen')){D.mode='intro';renderDan();return}
+  if(t.closest('#blkStart')||t.closest('#blkAgain')){blkStart();return}
+  if(t.closest('#tabExplain')){if(S.unit.type==='drill'&&S.unit.ex){stopAll();delete LIVE[S.unit.id];P={mode:'explain',exList:S.unit.ex(),ex:0,stage:0};renderAll()}return}
+  if(t.closest('#tabPractice')){if(S.unit.type==='drill')drStart();return}
+  if(t.closest('#drStart')){drStart();return}
+  if(t.closest('#exNext')){exNext();return}
+  if(t.closest('#exPrev')){exPrev();return}
+  if((el=t.closest('[data-key]'))){const k=el.dataset.key;if(k==='back')backspace();else if(k==='enter')submit();else press(k);return}
+  if(t.closest('#hintBtn')){const h=$('#hint');if(h){h.hidden=!h.hidden;P.hint=!h.hidden}return}
+  if(t.closest('#nextQ')){nextQ();return}
+  if((el=t.closest('[data-act]'))){
+    const a=el.dataset.act;
+    if(a==='retry')drStart(S.missed,true);
+    else if(a==='again')drStart();
+    else if(a==='explain'){stopAll();delete LIVE[S.unit.id];P={mode:'explain',exList:S.unit.ex(),ex:0,stage:0};renderAll()}
+  }
+});
+document.addEventListener('change',e=>{
+  if(e.target&&e.target.id==='voiceSel'){try{localStorage.setItem(VKEY,e.target.value)}catch(err){}VOICE=pickVoice();speak('いんいちがいち、いんにがに')}
+});
+document.addEventListener('keydown',e=>{
+  const t=e.target;
+  if(t&&t.tagName==='BUTTON'&&(e.key==='Enter'||e.key===' '))return;
+  if(M&&/^[1-4]$/.test(e.key)){mcPick(+e.key-1);return}
+  if(S.unit&&S.unit.type==='drill'&&P&&P.mode==='practice'&&S.unit.kind==='steps'){
+    if(/^[0-9]$/.test(e.key))press(e.key);
+    else if(e.key==='Backspace')backspace();
+    else if(e.key==='Enter'){e.preventDefault();submit()}
+  }
+});
+window.addEventListener('pagehide',stopAll);
+
+S.unit=UNITS[0];
+applyNav();
+setUnit('d1');
+})();
+
+</script>

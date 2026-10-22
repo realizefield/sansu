@@ -1,0 +1,998 @@
+<title>5と10のまとまり練習</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Zen+Maru+Gothic:wght@500;700&display=swap">
+<style>
+/* Layout: 上にステップ選択、下に「図」と「式・入力」を左右に並べる作業パネル（狭い画面では縦積み）。
+   箱の青い丸は手元の教材の図に合わせ、強調の「あと」の分だけオレンジにする。 */
+:root{
+  --bg:#edf1f6; --surface:#ffffff; --surface2:#f5f8fc; --ink:#14202e; --muted:#566678;
+  --line:#d3dce7; --line-strong:#8fa0b4; --boxline:#24364b;
+  --blue:#1d74d8; --blue-ink:#0f4c9a; --blue-soft:#dcebfb; --on-blue:#ffffff;
+  --orange:#ee8416; --orange-soft:#fff0dc;
+  --good:#12804d; --good-soft:#dff3e8; --warn:#9a5200; --warn-soft:#fdecd3;
+  --font-body:"BIZ UDPGothic","Hiragino Sans","Yu Gothic UI","Meiryo",sans-serif;
+  --font-num:"Zen Maru Gothic","BIZ UDPGothic","Hiragino Maru Gothic ProN","Meiryo",sans-serif;
+  --cs:clamp(30px,8.4vw,52px); --g:6px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e1621; --surface:#172130; --surface2:#1e2b3d; --ink:#e8eef6; --muted:#9db0c4;
+    --line:#2b394e; --line-strong:#5d7189; --boxline:#9db3cc;
+    --blue:#4d9bf0; --blue-ink:#8cc0fa; --blue-soft:#1b3350; --on-blue:#06182c;
+    --orange:#f5a04a; --orange-soft:#3a2a16;
+    --good:#4cc58b; --good-soft:#15362a; --warn:#f0b463; --warn-soft:#3a2d17;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e1621; --surface:#172130; --surface2:#1e2b3d; --ink:#e8eef6; --muted:#9db0c4;
+  --line:#2b394e; --line-strong:#5d7189; --boxline:#9db3cc;
+  --blue:#4d9bf0; --blue-ink:#8cc0fa; --blue-soft:#1b3350; --on-blue:#06182c;
+  --orange:#f5a04a; --orange-soft:#3a2a16;
+  --good:#4cc58b; --good-soft:#15362a; --warn:#f0b463; --warn-soft:#3a2d17;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:16px;line-height:1.7}
+button{font:inherit;color:inherit}
+.wrap{max-width:1000px;margin:0 auto;padding-block:22px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:18px}
+.eyebrow{margin:0;font-size:13px;letter-spacing:.12em;color:var(--muted)}
+h1{margin:2px 0 4px;font-family:var(--font-num);font-size:clamp(26px,5.6vw,36px);line-height:1.25;text-wrap:balance}
+.lead{margin:0;color:var(--muted);max-width:42em}
+
+/* ステップ選択 */
+:focus-visible{outline:3px solid var(--orange);outline-offset:2px}
+
+/* パネル */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:clamp(14px,3vw,24px);display:flex;flex-direction:column;gap:16px}
+.phead{display:flex;flex-wrap:wrap;gap:12px 20px;justify-content:space-between;align-items:flex-start}
+.phead>div:first-child{min-width:0;flex:1 1 320px}
+.stepno{margin:0;font-size:13px;color:var(--muted);letter-spacing:.08em}
+h2{margin:0;font-family:var(--font-num);font-size:clamp(22px,4.6vw,28px);line-height:1.3}
+.desc{margin:4px 0 0;color:var(--muted);max-width:46em}
+.seg{display:flex;border:1.5px solid var(--blue);border-radius:12px;overflow:hidden}
+.seg button{border:0;background:transparent;padding:10px 20px;cursor:pointer;color:var(--blue-ink);font-weight:700;min-height:44px}
+.seg button[aria-pressed="true"]{background:var(--blue);color:var(--on-blue)}
+.patrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.patrow .lab{font-size:14px;color:var(--muted);margin-right:4px}
+.pat{display:flex;align-items:center;gap:6px;border:1.5px solid var(--line);background:var(--surface2);border-radius:10px;padding:4px 12px;cursor:pointer;min-height:38px;font-size:14px}
+.pat[aria-pressed="true"]{border-color:var(--blue);background:var(--blue-soft)}
+.mini{display:inline-block;width:16px;height:16px;border-radius:50%;background:var(--blue)}
+
+/* 作業エリア */
+.work{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:820px){.work{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--surface2);border:1px solid var(--line);border-radius:14px;padding:clamp(12px,2.6vw,20px)}
+.cardhead{margin:0 0 10px;font-size:13px;letter-spacing:.08em;color:var(--muted);font-weight:700}
+.figbody{display:flex;flex-direction:column;gap:12px;min-height:90px}
+.figrow{display:flex;flex-wrap:wrap;align-items:center;gap:14px 18px}
+.op{font-family:var(--font-num);font-size:clamp(24px,6vw,34px);font-weight:700;color:var(--muted)}
+.frame{display:flex;flex-direction:column;gap:6px}
+.box{display:flex;gap:var(--g);padding:var(--g);border:3px solid var(--boxline);border-radius:10px;background:var(--surface)}
+.loose{display:grid;grid-template-columns:repeat(var(--n,5),var(--cs));gap:var(--g)}
+.tiles{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.tile{display:grid;place-items:center;width:clamp(48px,11vw,64px);height:clamp(48px,11vw,64px);border-radius:12px;background:var(--blue);color:var(--on-blue);font-family:var(--font-num);font-weight:700;font-size:clamp(18px,4vw,24px);position:relative}
+.tile.add{background:var(--orange);color:#1b1206}
+.tile.gone{background:transparent;border:2px dashed var(--line-strong);color:var(--line-strong)}
+.tile.gone::after{content:"✕";position:absolute;color:var(--warn);font-size:1.5em;opacity:.85}
+
+/* 丸・くだもの */
+.cell{width:var(--cs);height:var(--cs);display:grid;place-items:center;border-radius:50%;position:relative;font-size:calc(var(--cs)*.78);line-height:1;flex:none;user-select:none}
+.cell:not(.fruit).on{background:var(--blue)}
+.cell:not(.fruit).add{background:var(--orange)}
+.cell.off{border:2px dashed var(--line-strong)}
+.cell.ghost{border:2px dotted var(--line-strong);opacity:.7}
+.cell:not(.fruit).gone{border:2px dashed var(--line-strong)}
+.cell.fruit.add{box-shadow:0 0 0 3px var(--orange);}
+.cell.fruit.gone{opacity:.35}
+.cell.gone::after{content:"✕";position:absolute;font-size:.62em;font-weight:700;color:var(--warn);opacity:1}
+.cell[data-tap]{cursor:pointer}
+.cell[data-tap]:hover{box-shadow:0 0 0 3px var(--blue-soft)}
+.pop{animation:pop .35s ease-out}
+@keyframes pop{0%{transform:scale(.4)}70%{transform:scale(1.18)}100%{transform:scale(1)}}
+.tapinfo{margin:0;font-size:14px;color:var(--blue-ink);background:var(--blue-soft);border-radius:8px;padding:6px 10px;align-self:flex-start}
+
+/* 式 */
+.lines{display:flex;flex-direction:column;gap:10px}
+.main{font-family:var(--font-num);font-weight:700;font-size:clamp(26px,6vw,36px);line-height:1.3;padding-bottom:8px;border-bottom:1px dashed var(--line-strong)}
+.line{display:flex;flex-direction:column;gap:0;padding:6px 10px;border-radius:10px;border-left:5px solid transparent}
+.line.active{background:var(--blue-soft);border-left-color:var(--blue)}
+.line.done{border-left-color:var(--good)}
+.tag{font-size:13px;color:var(--muted)}
+.eq{font-family:var(--font-num);font-weight:700;font-size:clamp(24px,5.6vw,32px);line-height:1.4}
+.ans{color:var(--good)}
+.sq,.blank{display:inline-block;min-width:1.5em;text-align:center;border-bottom:3px solid var(--blue);background:var(--surface);border-radius:6px;padding:0 .15em;color:var(--blue-ink)}
+.sq{background:transparent;border-bottom:0;color:var(--muted)}
+.blank.shake{animation:shake .4s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.say{margin:12px 0 0;padding:10px 12px;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+.msg{min-height:1.7em;margin:10px 0 0;font-weight:700}
+.msg.good{color:var(--good)}
+.msg.warn{color:var(--warn)}
+.hintbox{margin:8px 0 0;padding:10px 12px;border-radius:10px;background:var(--warn-soft);color:var(--ink)}
+.donebox{margin:10px 0 0;padding:10px 12px;border-radius:10px;background:var(--good-soft);font-family:var(--font-num);font-weight:700;font-size:clamp(17px,3.8vw,21px);line-height:1.6}
+
+/* ボタン・テンキー */
+.btn{border:1.5px solid var(--line-strong);background:var(--surface);border-radius:12px;padding:10px 18px;cursor:pointer;min-height:48px;font-weight:700}
+.btn:hover{border-color:var(--blue)}
+.btn.primary{background:var(--blue);border-color:var(--blue);color:var(--on-blue)}
+.btn:disabled{opacity:.4;cursor:default}
+.navbtns,.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;max-width:340px}
+.key{border:1.5px solid var(--line-strong);background:var(--surface);border-radius:12px;min-height:54px;font-family:var(--font-num);font-size:24px;font-weight:700;cursor:pointer}
+.key:active{background:var(--blue-soft)}
+.key.enter{background:var(--blue);border-color:var(--blue);color:var(--on-blue);font-size:18px}
+.progress{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.pcount{font-weight:700}
+.pdots{display:flex;gap:6px;flex-wrap:wrap}
+.pd{width:14px;height:14px;border-radius:50%;border:2px solid var(--line-strong)}
+.pd.cur{border-color:var(--blue);background:var(--blue-soft)}
+.pd.ok{background:var(--good);border-color:var(--good)}
+.pd.miss{background:var(--orange);border-color:var(--orange)}
+
+/* 結果 */
+.result{display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+.result h3{margin:0;font-family:var(--font-num);font-size:clamp(22px,5vw,30px)}
+.bigstars{font-size:34px;letter-spacing:4px;color:var(--orange)}
+.misslist{margin:0;padding-left:1.2em;font-family:var(--font-num);font-weight:700}
+.notes{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 18px}
+.notes summary{cursor:pointer;font-weight:700;min-height:32px}
+.notes ul{margin:8px 0 0;padding-left:1.3em}
+.notes li{margin:4px 0}
+/* 達成度の棒グラフ・合格 */
+.bar{position:relative;display:block;height:8px;border-radius:99px;background:var(--line)}
+.bar i{display:block;height:100%;border-radius:99px;background:var(--blue);transition:width .5s ease}
+.bar u{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink);opacity:.5;text-decoration:none}
+.bar.ok i{background:var(--good)}
+.pat{cursor:default}
+.pat small{font-size:11px;color:var(--muted)}
+.pat.on{border-color:var(--blue);background:var(--blue-soft)}
+.pat:not(.on){opacity:.7}
+.ubar{display:flex;flex-direction:column;gap:6px;margin-top:10px;max-width:520px}
+.ubar .bar{height:14px}
+.ustat{margin:0;font-size:14px;color:var(--muted)}
+.ustat .pass{color:var(--good);font-size:20px;margin-right:10px;font-family:var(--font-num)}
+.passbanner{margin:0;padding:8px 18px;border-radius:12px;border:2px solid var(--good);background:var(--good-soft);color:var(--good);font-family:var(--font-num);font-weight:700;font-size:clamp(22px,5vw,30px)}
+.needmore{margin:0;color:var(--muted)}
+/* 単元一覧 */
+.index{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:clamp(14px,3vw,22px);display:flex;flex-direction:column;gap:14px}
+.ihead{display:flex;flex-wrap:wrap;align-items:center;gap:10px 20px}
+#overall{flex:1 1 320px;display:flex;align-items:center;gap:16px;min-width:0}
+.ostat{display:flex;align-items:baseline;gap:8px;white-space:nowrap}
+.ostat b{font-family:var(--font-num);font-size:36px;line-height:1}
+.ostat span{font-size:13px;color:var(--muted);letter-spacing:.06em}
+#overall .bar{flex:1 1 auto;height:6px;min-width:60px}
+.btn.small{min-height:40px;padding:6px 16px;font-size:14px;font-weight:400}
+#nav{display:flex;flex-direction:column}
+.grow{display:grid;grid-template-columns:150px minmax(0,1fr);gap:10px 20px;padding:14px 0;border-top:1px solid var(--line)}
+.gname{display:flex;flex-direction:column;gap:2px;padding-top:2px}
+.gname b{font-size:15px}
+.gcount{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.ugrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.unit{display:flex;flex-direction:column;justify-content:space-between;gap:8px;text-align:left;min-height:88px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);cursor:pointer;transition:border-color .15s,background .15s}
+.unit:hover{border-color:var(--blue)}
+.u-top{display:flex;justify-content:space-between;align-items:baseline;gap:6px}
+.u-no{font-family:var(--font-num);font-weight:700;color:var(--muted);font-size:15px}
+.u-stat{font-size:12px;color:var(--muted);white-space:nowrap}
+.u-title{font-size:15px;line-height:1.35;font-weight:700;flex:1}
+.unit .bar{height:5px}
+.unit.passed .u-stat{color:var(--good);font-weight:700}
+.unit[aria-current="true"]{background:var(--blue);border-color:var(--blue);color:var(--on-blue)}
+.unit[aria-current="true"] .u-no,.unit[aria-current="true"] .u-stat,.unit[aria-current="true"].passed .u-stat{color:var(--on-blue)}
+.unit[aria-current="true"] .bar{background:rgba(255,255,255,.35)}
+.unit[aria-current="true"] .bar i,.unit[aria-current="true"] .bar.ok i{background:var(--on-blue)}
+.unit[aria-current="true"] .bar u{background:var(--on-blue);opacity:.9}
+.ilegend{margin:0;padding-top:12px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px}
+.lg-line{display:inline-block;width:2px;height:12px;background:var(--ink);opacity:.5}
+@media (max-width:720px){
+  .grow{grid-template-columns:minmax(0,1fr)}
+  .gname{flex-direction:row;align-items:baseline;gap:10px}
+  .ugrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+/* ひっ算 */
+.hissan{align-self:flex-start;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 18px 14px}
+.hissan table{border-collapse:collapse;font-family:var(--font-num);font-weight:700;font-size:clamp(30px,8vw,44px);line-height:1.3;text-align:center}
+.hissan td{min-width:1.6em;padding:0 .12em}
+.hissan .hd td{font-size:13px;font-family:var(--font-body);font-weight:400;color:var(--muted);padding-bottom:4px}
+.hissan .mk td{font-size:.5em;height:1.3em;color:var(--orange);line-height:1}
+.hissan .sg{color:var(--muted);text-align:left}
+.hissan .r td{border-top:3px solid var(--boxline)}
+.hissan .r .ok{color:var(--good)}
+.hissan .cx{text-decoration:line-through;text-decoration-color:var(--orange);text-decoration-thickness:3px;color:var(--muted)}
+.hissan sup{font-size:.45em;color:var(--orange);vertical-align:top;position:relative;top:.15em}
+.ph{display:inline-block;width:.8em;height:.8em;border:2px dashed var(--line-strong);border-radius:6px;vertical-align:middle}
+/* 点数 */
+.scoreline{margin:6px 0 0;font-size:14px;font-weight:700;color:var(--blue-ink)}
+.scores{margin:0;display:flex;flex-wrap:wrap;gap:8px}
+.scorebox{background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:8px 16px;min-width:110px}
+.scorebox.now{border-color:var(--blue);background:var(--blue-soft)}
+.scorebox small{display:block;font-size:13px;color:var(--muted)}
+.scorebox b{font-family:var(--font-num);font-size:28px;line-height:1.2}
+@media (prefers-reduced-motion:reduce){.pop,.blank.shake{animation:none}}
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">江原予備校　小学校算数プログラム</p>
+    <h1>5と10のまとまり練習</h1>
+    <p class="lead">箱に入れる絵を見ながら、「5」と「10」を基準にしてたし算・ひき算を身につけます。各ステップは「せつめい」で見方を確認してから「れんしゅう」に進みます。</p>
+  </header>
+  <section class="index" aria-label="単元一覧">
+    <div class="ihead">
+      <div id="overall"></div>
+      <button type="button" class="btn small" id="navToggle" aria-expanded="true" aria-controls="nav">一覧をとじる</button>
+    </div>
+    <nav id="nav" aria-label="ステップ"></nav>
+  </section>
+  <section class="panel" aria-live="off">
+    <div class="phead">
+      <div>
+        <p class="stepno" id="stepNo"></p>
+        <h2 id="stepTitle"></h2>
+        <p class="desc" id="stepDesc"></p>
+        <p class="scoreline" id="scoreLine"></p>
+        <div id="unitBar"></div>
+      </div>
+      <div class="seg" role="group" aria-label="表示の切りかえ">
+        <button id="tabExplain" type="button" aria-pressed="true">せつめい</button>
+        <button id="tabPractice" type="button" aria-pressed="false">れんしゅう</button>
+      </div>
+    </div>
+    <div class="patrow" id="patRow"></div>
+    <div id="view"></div>
+  </section>
+  <details class="notes">
+    <summary>先生用メモ（進め方）</summary>
+    <ul>
+      <li>順番は ①→⑧-4。つまずいたステップに戻って、図を指でさわりながら数えさせてください。</li>
+      <li>「せつめい」では「つぎへ」を押すたびに1手順ずつ見せます。空いている丸、とる丸は画面をタップして数えられます。</li>
+      <li>「れんしゅう」は式の□に数字を入れます。まちがえると2回目でヒントが出て、3回目で答えを見せます。</li>
+      <li>1回もまちがえなかった問題が「ひとりでできた」です。れんしゅうが終わるたびに 100点満点で「1回目 ○点、2回目 ○点…」と記録され、星は最高点で決まります。</li>
+      <li>目次の各単元に、達成度の棒グラフがあります。れんしゅうを始めると棒は0にもどり、1問終えるごとに伸びます。縦線が合格ライン（80点）で、超えると緑色になり「合格 やったね」と表示されます。</li>
+      <li>図の絵は挑戦のたびに 1回目〇→2回目りんご→3回目なし→4回目もも と自動で変わります（5回目から〇）。各回の点数は「点数の記録」に残ります。①と③は1回の中で4つの絵を順に使います。</li>
+      <li>記録はこの端末のブラウザにだけ残ります。生徒が代わるときは下のボタンで消してください。</li>
+      <li>⑧-3（くり下がり）は発展です。13−4 を 10−4＋3 で考えます。</li>
+      <li>⑨〜⑪は 28＋3＝28＋2＋1＝30＋1＝31 のように、次の10のたば（30・40・50）を作る練習で、1回8問です。⑫〜⑲はひっ算（⑯〜⑲は3桁で、1回6問）（一の位から計算、くり上げ・くり下げの手順つき）です。</li>
+    </ul>
+    <div class="actions">
+      <button type="button" class="btn" id="resetBtn">点数の記録を消す</button>
+      <button type="button" class="btn primary" id="notesClose">メモをとじる</button>
+    </div>
+  </details>
+</div>
+
+<script>
+(function(){
+'use strict';
+var $=function(s,r){return (r||document).querySelector(s)};
+var PAT={dot:{name:'〇',emoji:''},apple:{name:'りんご',emoji:'🍎'},pear:{name:'なし',emoji:'🍐'},peach:{name:'もも',emoji:'🍑'}};
+var PAT_KEYS=Object.keys(PAT);
+var pattern='dot';
+
+/* ---------- 道具 ---------- */
+function rnd(n){return Math.floor(Math.random()*n)}
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=rnd(i+1);var t=a[i];a[i]=a[j];a[j]=t}return a}
+function range(a,b){var r=[];for(var i=a;i<=b;i++)r.push(i);return r}
+function pickN(arr,n){return shuffle(arr).slice(0,n)}
+function withRepeats(base,total){var extra=[];while(base.length+extra.length<total)extra.push(base[rnd(base.length)]);return shuffle(base.concat(extra))}
+function pairs(as,bs,ok){var r=[];as.forEach(function(a){bs.forEach(function(b){if(!ok||ok(a,b))r.push([a,b])})});return r}
+
+/* ---------- 図の部品 ---------- */
+function cell(st,pat,tapMode){
+  var p=PAT[pat];
+  var showE=p.emoji&&(st==='on'||st==='add'||st==='gone');
+  var tap=(tapMode==='fill'&&st==='off')||(tapMode==='cross'&&st==='on');
+  return '<span class="cell '+st+(p.emoji?' fruit':'')+'"'+(tap?' data-tap="'+tapMode+'" data-e="'+p.emoji+'" role="button" tabindex="0"':'')+'>'+(showE?p.emoji:'')+'</span>';
+}
+function box(states,pat,tapMode){return '<div class="box">'+states.map(function(s){return cell(s,pat,tapMode)}).join('')+'</div>'}
+function frame(states,pat,tapMode){
+  if(states.length<=5)return '<div class="frame">'+box(states,pat,tapMode)+'</div>';
+  return '<div class="frame">'+box(states.slice(0,5),pat,tapMode)+box(states.slice(5),pat,tapMode)+'</div>';
+}
+function loose(states,pat){var n=Math.min(5,states.length);return '<div class="loose" style="--n:'+n+'">'+states.map(function(s){return cell(s,pat)}).join('')+'</div>'}
+function tapInfo(mode,base,k){
+  var t=mode==='fill'?'空いている丸をタップして数えてみよう（いま '+base+'個）':k+'個 とります。丸をタップして とってみよう（とった数 0個）';
+  return '<p class="tapinfo" data-mode="'+mode+'" data-base="'+base+'" data-k="'+(k||0)+'">'+t+'</p>';
+}
+function refreshTapInfo(root){
+  var info=root&&root.querySelector('.tapinfo');if(!info)return;
+  var mode=info.dataset.mode,base=+info.dataset.base,k=+info.dataset.k,c;
+  if(mode==='fill'){c=root.querySelectorAll('.cell.add[data-tap]').length;info.textContent='ふやした数 '+c+'個 → いま '+(base+c)+'個'}
+  else{c=root.querySelectorAll('.cell.gone[data-tap]').length;info.textContent='とった数 '+c+'個（'+k+'個 とります）→ のこり '+(base-c)+'個'}
+}
+function toggleCell(el){
+  var mode=el.dataset.tap,e=el.dataset.e||'';
+  if(mode==='fill'){
+    if(el.classList.contains('add')){el.classList.remove('add','pop');el.classList.add('off');el.textContent=''}
+    else{el.classList.remove('off');el.classList.add('add','pop');el.textContent=e}
+  }else{
+    if(el.classList.contains('gone')){el.classList.remove('gone');el.classList.add('on')}
+    else{el.classList.remove('on');el.classList.add('gone')}
+  }
+  refreshTapInfo(el.closest('.figbody'));
+}
+function tiles(n,st){var h='';for(var i=0;i<n;i++)h+='<span class="tile '+(Array.isArray(st)?st[i]:st)+'">10</span>';return h}
+
+/* ---------- 問題のつくり方 ----------
+   steps: 手順（式の□に入れる答え）。 say[stage]: 手順ごとの説明。 fig(stage): 手順が進んだときの図。 */
+function qComp(a,N,pat){
+  var need=N-a,P=function(){return pat||pattern};
+  return {label:a+' ＋ □ ＝ '+N,pat:pat,
+    steps:[{ans:need,text:function(v){return a+' ＋ '+v+' ＝ '+N}}],
+    fig:function(stage){
+      var st=range(0,N-1).map(function(i){return i<a?'on':(stage>=1?'add':'off')});
+      return '<div class="figrow">'+frame(st,P(),stage===0?'fill':null)+'</div>'+(stage===0?tapInfo('fill',a):'');
+    },
+    say:['箱に '+a+'個 入っています。いっぱい（'+N+'個）にするには、あと何個かな？','あと '+need+'個 で '+N+'個です。'],
+    done:a+' ＋ '+need+' ＝ '+N};
+}
+function qSub(N,k,pat){
+  var P=function(){return pat||pattern};
+  return {label:N+' − '+k,pat:pat,
+    steps:[{ans:N-k,text:function(v){return N+' − '+k+' ＝ '+v}}],
+    fig:function(stage){
+      var st=range(0,N-1).map(function(i){return (stage>=1&&i>=N-k)?'gone':'on'});
+      return '<div class="figrow">'+frame(st,P(),stage===0?'cross':null)+'</div>'+(stage===0?tapInfo('cross',N,k):'');
+    },
+    say:['箱に '+N+'個 あります。'+k+'個 とると、のこりは何個？',''+k+'個 とって、のこりは '+(N-k)+'個です。'],
+    done:N+' − '+k+' ＝ '+(N-k)};
+}
+function qAdd(a,b,N,pat){
+  var need=N-a,rest=b-need,P=function(){return pat||pattern};
+  return {label:a+' ＋ '+b,pat:pat,final:a+b,
+    main:function(v){return a+' ＋ '+b+' ＝ '+v},
+    steps:[
+      {ans:need,tag:'あと何個で '+N+' ？',text:function(v){return a+' ＋ '+v+' ＝ '+N}},
+      {ans:rest,tag:b+' を「'+need+'」と「のこり」に分ける',text:function(v){return b+' ＝ '+need+' ＋ '+v}},
+      {ans:a+b,tag:N+' と のこり を たす',text:function(v){return N+' ＋ '+rest+' ＝ '+v}}],
+    fig:function(stage){
+      var fs=range(0,N-1).map(function(i){return i<a?'on':(stage>=1?'add':'off')});
+      var ls=range(0,b-1).map(function(j){return (stage>=1&&j<need)?'ghost':'on'});
+      return '<div class="figrow">'+frame(fs,P())+'<span class="op">＋</span>'+loose(ls,P())+'</div>';
+    },
+    say:[a+' を 箱に 入れます。右の '+b+'個 のうち、いくつ 箱に入れると '+N+' になるかな？',
+         'あと '+need+'個 で '+N+'。右の '+b+'個から '+need+'個 を 箱に入れます。',
+         'のこりは '+rest+'個。（'+b+' ＝ '+need+' ＋ '+rest+'）',
+         N+' と '+rest+' で '+(a+b)+'。'],
+    done:a+' ＋ '+b+' ＝ '+a+' ＋ '+need+' ＋ '+rest+' ＝ '+N+' ＋ '+rest+' ＝ '+(a+b)};
+}
+function qTeen(n,type){
+  var P=function(){return pattern},T=10+n;
+  var ans=type==='sum'?T:n;
+  return {label:type==='sum'?'10 ＋ '+n:T+' ＝ 10 ＋ □',
+    steps:[{ans:ans,text:function(v){return type==='sum'?'10 ＋ '+n+' ＝ '+v:T+' ＝ 10 ＋ '+v}}],
+    fig:function(){
+      var s2=range(0,9).map(function(i){return i<n?'on':'off'});
+      return '<div class="figrow">'+frame(range(0,9).map(function(){return 'on'}),P())+'<span class="op">＋</span>'+frame(s2,P())+'</div>';
+    },
+    say:[type==='sum'?'10個の箱は いっぱいです。となりに '+n+'個。合わせて いくつ？':T+'個を、10個の箱と そのとなりに 分けます。となりは何個？',
+         '10 と '+n+' で '+T+' です。'],
+    done:'10 ＋ '+n+' ＝ '+T};
+}
+function qBorrow(a,b){
+  var u=a-10,P=function(){return pattern};
+  return {label:a+' − '+b,final:a-b,
+    main:function(v){return a+' − '+b+' ＝ '+v},
+    steps:[
+      {ans:u,tag:a+' は「10 と いくつ」？',text:function(v){return a+' ＝ 10 ＋ '+v}},
+      {ans:10-b,tag:'10 から '+b+' をひく',text:function(v){return '10 − '+b+' ＝ '+v}},
+      {ans:10-b+u,tag:'のこりと '+u+' をたす',text:function(v){return (10-b)+' ＋ '+u+' ＝ '+v}}],
+    fig:function(stage){
+      var f1=range(0,9).map(function(i){return (stage>=2&&i>=10-b)?'gone':'on'});
+      var f2=range(0,9).map(function(i){return i<u?(stage>=1?'add':'on'):'off'});
+      return '<div class="figrow">'+frame(f1,P())+'<span class="op">＋</span>'+frame(f2,P())+'</div>';
+    },
+    say:[a+' は「10 と '+u+'」と見ます。'+b+' をひくので、まず 10の箱からひきます。',
+         a+' ＝ 10 ＋ '+u+' です。',
+         '10 から '+b+'個 とると '+(10-b)+'個 のこります。',
+         (10-b)+' と '+u+' で '+(a-b)+'。'],
+    done:a+' − '+b+' ＝ 10 − '+b+' ＋ '+u+' ＝ '+(10-b)+' ＋ '+u+' ＝ '+(a-b)};
+}
+function qTens(x,y,op){
+  var plus=op==='+',r=plus?x+y:x-y,sym=plus?'＋':'−';
+  return {label:x+' '+sym+' '+y,
+    steps:[{ans:r,text:function(v){return x+' '+sym+' '+y+' ＝ '+v}}],
+    fig:function(stage){
+      if(plus)return '<div class="tiles">'+tiles(x/10,'on')+'<span class="op">＋</span>'+tiles(y/10,'add')+'</div>';
+      var st=range(0,x/10-1).map(function(i){return (stage>=1&&i>=(x-y)/10)?'gone':'on'});
+      return '<div class="tiles">'+tiles(x/10,st)+'</div>';
+    },
+    say:[plus?'10が '+(x/10)+'個 と、10が '+(y/10)+'個。合わせて 10が いくつ分？':'10が '+(x/10)+'個から、10が '+(y/10)+'個 とると？',
+         plus?'10が '+(r/10)+'個 で '+r+' です。':'10が '+(r/10)+'個 のこって '+r+' です。'],
+    done:x+' '+sym+' '+y+' ＝ '+r};
+}
+
+/* 30＋4＝34 のような「10のたば＋ばら」 */
+function qOnes(base,n,pat){
+  var P=function(){return pat||pattern},big=n>=10,r=base+n;
+  return {label:base+' ＋ '+n,
+    steps:[{ans:r,text:function(v){return base+' ＋ '+n+' ＝ '+v}}],
+    fig:function(){
+      var right=big?'<div class="tiles">'+tiles(n/10,'add')+'</div>':loose(range(0,n-1).map(function(){return 'add'}),P());
+      return '<div class="figrow"><div class="tiles">'+tiles(base/10,'on')+'</div><span class="op">＋</span>'+right+'</div>';
+    },
+    say:[big?'10が '+(base/10)+'個 と、10が '+(n/10)+'個。合わせて 10が いくつ分？':'10が '+(base/10)+'個 で '+base+'。ばらの '+n+'個 を たします。',
+         big?'10が '+(r/10)+'個 で '+r+' です。':base+' ＋ '+n+' ＝ '+r+'。十の位は '+(base/10)+' のまま、一の位が '+n+' になります。'],
+    done:base+' ＋ '+n+' ＝ '+r};
+}
+
+/* ひっ算（2桁＋1桁、2桁＋2桁、2桁−1桁、2桁−2桁） */
+function hissanFig(a,b,op,info){
+  var t1=Math.floor(a/10),u1=a%10,t2=Math.floor(b/10),u2=b%10;
+  function ansCell(v,cls){return '<td>'+(v===null?'<span class="ph"></span>':'<span class="'+cls+'">'+v+'</span>')+'</td>'}
+  return '<div class="hissan"><table>'+
+   '<tr class="hd"><td></td><td>十の位</td><td>一の位</td></tr>'+
+   '<tr class="mk"><td></td><td>'+(info.mark===null?'':info.mark)+'</td><td></td></tr>'+
+   '<tr><td></td><td class="'+(info.cross?'cx':'')+'">'+t1+'</td><td>'+(info.bor?'<sup>1</sup>':'')+u1+'</td></tr>'+
+   '<tr><td class="sg">'+(op==='+'?'＋':'−')+'</td><td>'+(t2||'')+'</td><td>'+u2+'</td></tr>'+
+   '<tr class="r"><td></td>'+ansCell(info.tens,'ok')+ansCell(info.ones,'ok')+'</tr></table></div>';
+}
+function qHissan(a,b,op){
+  var t1=Math.floor(a/10),u1=a%10,t2=Math.floor(b/10),u2=b%10,add=op==='+',one=b<10;
+  var carry=add&&u1+u2>=10,borrow=!add&&u1<u2,res=add?a+b:a-b,sym=add?'＋':'−',steps=[],say=[];
+  if(add){
+    steps.push({ans:u1+u2,tag:'一の位をたす',text:function(v){return u1+' ＋ '+u2+' ＝ '+v}});
+    if(carry){
+      steps.push({ans:(u1+u2)%10,tag:'一の位に書く数（10をこえた分は くり上げる）',text:function(v){return '一の位に書く数 ＝ '+v}});
+      steps.push({ans:t1+t2+1,tag:'十の位をたす（くり上げた 1 も）',text:function(v){return one?t1+' ＋ 1 ＝ '+v:t1+' ＋ '+t2+' ＋ 1 ＝ '+v}});
+      say=['ひっ算は 一の位から 計算します。'+u1+' ＋ '+u2+' は？',
+           (u1+u2)+' は 10以上です。一の位には '+((u1+u2)%10)+' を書いて、1 を 十の位に くり上げます。一の位に書く数は？',
+           'くり上げた 1 を わすれずに 十の位を計算します。',
+           'できあがり。くり上げた 1 を たすのが ポイントです。'];
+    }else{
+      steps.push(one?{ans:t1,tag:'十の位は そのまま',text:function(v){return '十の位 ＝ '+v}}:{ans:t1+t2,tag:'十の位をたす',text:function(v){return t1+' ＋ '+t2+' ＝ '+v}});
+      say=['ひっ算は 一の位から 計算します。'+u1+' ＋ '+u2+' は？',one?'一の位は '+(u1+u2)+'。十の位は そのまま '+t1+' を書きます。':'一の位は '+(u1+u2)+'。つぎに 十の位どうしを たします。','できあがり。'];
+    }
+  }else{
+    if(borrow){
+      steps.push({ans:10+u1-u2,tag:'十の位から 1 かりて、10 をたす',text:function(v){return '10 ＋ '+u1+' − '+u2+' ＝ '+v}});
+      steps.push({ans:t1-1-t2,tag:'十の位（1 かしたので 1 へる）',text:function(v){return one?t1+' − 1 ＝ '+v:t1+' − 1 − '+t2+' ＝ '+v}});
+      say=[u1+' から '+u2+' は ひけません。十の位から 1 かりて 10 を たし、10 ＋ '+u1+' − '+u2+' を計算します。',
+           '十の位は 1 かしたので '+(t1-1)+' になります。'+(one?t1+' − 1':t1+' − 1 − '+t2)+' は？',
+           'できあがり。かりたら 十の位を 1 へらすのが ポイントです。'];
+    }else{
+      steps.push({ans:u1-u2,tag:'一の位をひく',text:function(v){return u1+' − '+u2+' ＝ '+v}});
+      steps.push(one?{ans:t1,tag:'十の位は そのまま',text:function(v){return '十の位 ＝ '+v}}:{ans:t1-t2,tag:'十の位をひく',text:function(v){return t1+' − '+t2+' ＝ '+v}});
+      say=['ひっ算は 一の位から。'+u1+' − '+u2+' は？',one?'一の位は '+(u1-u2)+'。十の位は そのまま '+t1+' を書きます。':'つぎに 十の位どうしを ひきます。'+t1+' − '+t2+' は？','できあがり。'];
+    }
+  }
+  var onesStage=carry?2:1,tensStage=steps.length;
+  return {label:a+' '+sym+' '+b,final:res,
+    main:function(v){return a+' '+sym+' '+b+' ＝ '+v},
+    steps:steps,say:say,
+    fig:function(stage){
+      var info={mark:null,cross:false,bor:false,
+        ones:stage>=onesStage?res%10:null,
+        tens:stage>=tensStage?(Math.floor(res/10)||''):null};
+      if(carry&&stage>=2)info.mark='1';
+      if(borrow&&stage>=1){info.mark=t1-1;info.cross=true;info.bor=true}
+      return '<div class="figbody-h">'+hissanFig(a,b,op,info)+'</div>';
+    },
+    done:a+' '+sym+' '+b+' ＝ '+res};
+}
+var H1c=[],H1n=[],H2c=[],H2n=[],S1b=[],S1n=[],S2b=[],S2n=[];
+(function(){
+  var a,b,u;
+  for(a=11;a<=89;a++)for(b=2;b<=9;b++){u=a%10;if(u===0||a+b>99)continue;(u+b>=10?H1c:H1n).push([a,b])}
+  for(a=11;a<=88;a++)for(b=11;b<=88;b++){if(a%10===0||b%10===0||a+b>99)continue;((a%10)+(b%10)>=10?H2c:H2n).push([a,b])}
+  for(a=12;a<=99;a++)for(b=2;b<=9;b++){(a%10<b?S1b:S1n).push([a,b])}
+  for(a=21;a<=99;a++)for(b=11;b<a;b++){if(b%10===0)continue;(a%10<b%10?S2b:S2n).push([a,b])}
+})();
+function mixed(c,n){return shuffle(pickN(c,4).concat(pickN(n,4)))}
+/* 28＋3＝28＋2＋1＝30＋1＝31 のように、次の10のたば（30・40・50）を作ってから たす */
+function qBridge(a,b,T){
+  var P=function(){return pattern},t=Math.floor(a/10),u=a%10,need=T-a,rest=b-need,exact=rest===0,res=a+b;
+  var steps=exact?[{ans:res,text:function(v){return a+' ＋ '+b+' ＝ '+v}}]:[
+    {ans:need,tag:'あと何個で '+T+' ？',text:function(v){return a+' ＋ '+v+' ＝ '+T}},
+    {ans:rest,tag:b+' を「'+need+'」と「のこり」に分ける',text:function(v){return b+' ＝ '+need+' ＋ '+v}},
+    {ans:res,tag:T+' と のこり を たす',text:function(v){return T+' ＋ '+rest+' ＝ '+v}}];
+  var n=steps.length;
+  var q={label:a+' ＋ '+b,steps:steps,
+    fig:function(stage){
+      if(stage>=n){
+        var st=range(0,t).map(function(i){return i<t?'on':'add'});
+        return '<div class="figrow"><div class="tiles">'+tiles(t+1,st)+'</div>'+(exact?'':'<span class="op">＋</span>'+loose(range(0,rest-1).map(function(){return 'on'}),P()))+'</div>';
+      }
+      var fs=range(0,9).map(function(i){return i<u?'on':(stage>=1?'add':'off')});
+      var ls=range(0,b-1).map(function(j){return (stage>=1&&j<need)?'ghost':'on'});
+      return '<div class="figrow"><div class="tiles">'+tiles(t,'on')+'</div>'+frame(fs,P())+'<span class="op">＋</span>'+loose(ls,P())+'</div>';
+    },
+    say:exact?[a+' は 10が '+t+'個 と ばら '+u+'個。あと '+need+'個 で '+T+' です。'+b+'個 たすと？',a+' ＋ '+b+' ＝ '+T+'。ちょうど 10のたばに なりました。']:
+      [a+' は 10が '+t+'個 と ばら '+u+'個。あと '+need+'個 で '+T+'（次の10のたば）になります。',
+       '右の '+b+'個 から '+need+'個 を わけて、'+T+' にします。',
+       'のこりは '+rest+'個。（'+b+' ＝ '+need+' ＋ '+rest+'）',
+       T+' と '+rest+' で '+res+'。'],
+    done:exact?a+' ＋ '+b+' ＝ '+T:a+' ＋ '+b+' ＝ '+a+' ＋ '+need+' ＋ '+rest+' ＝ '+T+' ＋ '+rest+' ＝ '+res};
+  if(!exact){q.final=res;q.main=function(v){return a+' ＋ '+b+' ＝ '+v}}
+  return q;
+}
+function bridgeList(T){
+  var all=[],ex=[];
+  for(var a=T-9;a<=T-1;a++)for(var b=T-a;b<=9;b++)(b===T-a?ex:all).push([a,b]);
+  return shuffle(pickN(all,6).concat(pickN(ex,2))).map(function(p){return qBridge(p[0],p[1],T)});
+}
+function bridgeDesc(T){return (T-2)+'＋3 は、'+(T-2)+' にあと 2 をたして '+T+'。3 を「2 と 1」に分けて、'+(T-2)+'＋2＋1＝'+T+'＋1＝'+(T+1)+' と計算します。'+(T-1)+'＋1 から '+(T-9)+'＋9 まで、'+T+' を作る練習です。'}
+
+/* 3桁のひっ算（百・十・一の位）。くり上げ・くり下げを位ごとの手順に分ける */
+function hPlan(a,b,op){
+  var add=op==='+',da=[a%10,Math.floor(a/10)%10,Math.floor(a/100)],db=[b%10,Math.floor(b/10)%10,Math.floor(b/100)];
+  var nb=String(b).length,res=add?a+b:a-b,nres=String(res).length,rd=[res%10,Math.floor(res/10)%10,Math.floor(res/100)];
+  var POS=['一の位','十の位','百の位'],steps=[],say=[],cols=[],inC=0,carries=0,bad=false,i;
+  function push(ans,tag,text,sy){steps.push({ans:ans,tag:tag,text:text});say.push(sy)}
+  function eq(l){return function(v){return l+' ＝ '+v}}
+  function col(i,inn){
+    var hasB=i<nb,pos=POS[i],lead=i===0?'ひっ算は 一の位から。':pos+'へ。',out=0,s,l,e;
+    if(add){
+      if(hasB){s=da[i]+db[i]+inn;l=da[i]+' ＋ '+db[i]+(inn?' ＋ 1':'');push(s,pos+'をたす'+(inn?'（くり上げた 1 も）':''),eq(l),lead+(inn?'くり上げた 1 も たします。':'')+l+' は？')}
+      else if(inn){s=da[i]+1;l=da[i]+' ＋ 1';push(s,pos+'（くり上げた 1 をたす）',eq(l),lead+'くり上げた 1 を たします。'+l+' は？')}
+      else{s=da[i];push(s,pos+'は そのまま',eq(pos),lead+'ここは そのまま '+s+' を書きます。')}
+      if(s>=10){push(s%10,pos+'に書く数（10をこえた分は くり上げる）',eq(pos+'に書く数'),s+' は 10以上。'+pos+'には '+(s%10)+' を書いて、1 を 上の位に くり上げます。');out=1}
+    }else{
+      e=da[i]-inn;
+      if(e<0){bad=true;return 0}
+      if(!hasB){
+        if(inn)push(e,pos+'（1 かしたので 1 へる）',eq(da[i]+' − 1'),lead+'1 かしたので '+da[i]+' は '+e+' になっています。')
+        else push(e,pos+'は そのまま',eq(pos),lead+'ここは そのまま '+e+' を書きます。');
+      }else if(e<db[i]){
+        l='10 ＋ '+da[i]+(inn?' − 1':'')+' − '+db[i];
+        push(10+e-db[i],pos+'：上の位から 1 かりて 10 をたす',eq(l),lead+(inn?'1 かしたので '+da[i]+' は '+e+'。':'')+e+' から '+db[i]+' は ひけません。上の位から 1 かりて 10 を たします。'+l+' は？');out=1;
+      }else{
+        l=da[i]+(inn?' − 1':'')+' − '+db[i];
+        push(e-db[i],pos+'をひく'+(inn?'（1 かしたので 1 へる）':''),eq(l),lead+(inn?'1 かしたので '+da[i]+' は '+e+'。':'')+l+' は？');
+      }
+    }
+    cols[i]=add?{known:steps.length,carryOut:out}:{known:steps.length,borrowOut:out};
+    return out;
+  }
+  for(i=0;i<3;i++){inC=col(i,inC);if(bad)return null;carries+=inC}
+  if(inC)return null;
+  say.push('できあがり。');
+  return {steps:steps,say:say,cols:cols,res:res,nres:nres,rd:rd,da:da,db:db,carries:carries};
+}
+function hissan3(a,b,op,info){
+  var da=[a%10,Math.floor(a/10)%10,Math.floor(a/100)],db=[b%10,Math.floor(b/10)%10,Math.floor(b/100)],nb=String(b).length,i,r0='',r1='',r2='',r3='',r4='';
+  for(i=2;i>=0;i--){
+    r0+='<td>'+['一の位','十の位','百の位'][i]+'</td>';
+    r1+='<td>'+(info.marks[i]===null?'':info.marks[i])+'</td>';
+    r2+='<td class="'+(info.cross[i]?'cx':'')+'">'+(info.bor[i]?'<sup>1</sup>':'')+da[i]+'</td>';
+    r3+='<td>'+(i<nb?db[i]:'')+'</td>';
+    r4+='<td>'+(info.ans[i]===null?'<span class="ph"></span>':'<span class="ok">'+info.ans[i]+'</span>')+'</td>';
+  }
+  return '<div class="hissan"><table><tr class="hd"><td></td>'+r0+'</tr><tr class="mk"><td></td>'+r1+'</tr><tr><td></td>'+r2+'</tr>'+
+    '<tr><td class="sg">'+(op==='+'?'＋':'−')+'</td>'+r3+'</tr><tr class="r"><td></td>'+r4+'</tr></table></div>';
+}
+function qHissan3(a,b,op){
+  var pl=hPlan(a,b,op),sym=op==='+'?'＋':'−';
+  return {label:a+' '+sym+' '+b,final:pl.res,
+    main:function(v){return a+' '+sym+' '+b+' ＝ '+v},
+    steps:pl.steps,say:pl.say,
+    fig:function(stage){
+      var info={marks:[null,null,null],cross:[false,false,false],bor:[false,false,false],ans:[null,null,null]},i,c;
+      for(i=0;i<3;i++){
+        c=pl.cols[i];
+        if(stage>=c.known){
+          info.ans[i]=i<pl.nres?String(pl.rd[i]):'';
+          if(op==='+'&&c.carryOut)info.marks[i+1]='1';
+          if(op==='-'&&c.borrowOut){info.cross[i+1]=true;info.marks[i+1]=pl.da[i+1]-1;info.bor[i]=true}
+        }
+      }
+      return hissan3(a,b,op,info);
+    },
+    done:a+' '+sym+' '+b+' ＝ '+pl.res};
+}
+function hGen(kind){
+  var out=[],seen={},cnt={0:0,1:0,2:0},quota={0:1,1:2,2:3},tries=0,relax=false;
+  while(out.length<6&&tries<20000){
+    tries++;if(tries>6000)relax=true;
+    var a,b,op='+';
+    if(kind==='p31'){a=101+rnd(799);b=11+rnd(89)}
+    else if(kind==='m31'){op='-';a=110+rnd(890);b=11+rnd(89)}
+    else if(kind==='p33'){a=101+rnd(799);b=101+rnd(799)}
+    else{op='-';a=200+rnd(800);b=101+rnd(a-101)}
+    if(a%10===0||b%10===0)continue;
+    if(op==='+'&&a+b>999)continue;
+    if(op==='-'&&a<=b)continue;
+    var pl=hPlan(a,b,op);if(!pl)continue;
+    var c=Math.min(2,pl.carries),k=a+','+b;
+    if(seen[k]||(!relax&&cnt[c]>=quota[c]))continue;
+    seen[k]=1;cnt[c]++;out.push([a,b,op]);
+  }
+  return shuffle(out);
+}
+
+/* ---------- ステップ一覧 ---------- */
+var GROUPS=['5のまとまり','10のまとまり','15〜20 と 20＋10','30＋ ・ 40＋ ・ 50＋','ひっ算'];
+var add5=pairs([4,3,2,1],[2,3,4,5],function(a,b){return a+b>5&&a+b<=10&&b>5-a});
+var add10=pairs([9,8,7],[2,3,4,5],function(a,b){return a+b>10});
+var add10b=pairs([6,7,8,9],[4,5,6,7,8,9],function(a,b){return a+b>=12&&a+b<=18});
+var borrow=[];range(1,8).forEach(function(u){range(u+1,9).forEach(function(b){borrow.push([10+u,b])})});
+var tensBase=[[10,10,'+'],[10,20,'+'],[20,10,'+'],[20,10,'-'],[30,10,'-'],[30,20,'-']];
+var STEPS=[
+ {id:'s1',no:'①',g:0,short:'5になるには',title:'5になるには',rotate:true,
+  desc:'箱に入っている数を見て「あと何個で5個？」を考えます。〇・りんご・なし・ももの4つの絵で練習して、「5個のいっぱい」を頭に作ります。',
+  examples:function(){return [4,3,2,1].map(function(a){return qComp(a,5)})},
+  practice:function(){return shuffle([1,2,3,4,1,2,3,4]).map(function(a,i){return qComp(a,5,PAT_KEYS[i%4])})}},
+ {id:'s2',no:'②',g:0,short:'5を使ったたし算',title:'5を使ったたし算（合計10まで）',
+  desc:'4＋3 のとき、まず 4 を5個の箱に入れて「あと1個で5」。のこりは2個なので 5＋2＝7、と考えます。',
+  examples:function(){return [[4,2],[3,3],[4,3]].map(function(p){return qAdd(p[0],p[1],5)})},
+  practice:function(){return pickN(add5,8).map(function(p){return qAdd(p[0],p[1],5)})}},
+ {id:'s3',no:'③',g:0,short:'5からひく',title:'5からひく',rotate:true,
+  desc:'5個入った箱から とると のこりは何個か。5−1、5−2、5−3、5−4 を練習します。',
+  examples:function(){return [1,2,3,4].map(function(k){return qSub(5,k)})},
+  practice:function(){return shuffle([1,2,3,4,1,2,3,4]).map(function(k,i){return qSub(5,k,PAT_KEYS[i%4])})}},
+ {id:'s4',no:'④',g:1,short:'10になるには（5〜9）',title:'あと何個で10になるか（5〜9個）',
+  desc:'5個ならべる箱を2つ用意して、10個のいっぱいにするには あと何個かを考えます。まず 5・6・7・8・9個の場合です。',
+  examples:function(){return [5,6,7,8,9].map(function(n){return qComp(n,10)})},
+  practice:function(){return withRepeats([5,6,7,8,9],8).map(function(n){return qComp(n,10)})}},
+ {id:'s5',no:'⑤',g:1,short:'10になるには（5〜1）',title:'あと何個で10になるか（5〜1個）',
+  desc:'こんどは 5・4・3・2・1個の場合です。箱がほとんど空なので、あと何個で10かを落ち着いて数えます。',
+  examples:function(){return [5,4,3,2,1].map(function(n){return qComp(n,10)})},
+  practice:function(){return withRepeats([5,4,3,2,1],8).map(function(n){return qComp(n,10)})}},
+ {id:'s6',no:'⑥',g:1,short:'くり上がり',title:'くり上がりのたし算（9＋2＝10＋1）',
+  desc:'9＋2 は、9を10の箱にして「あと1個」。2のうち1個を箱に入れて 10、のこり1個で 10＋1＝11。8＋3 も同じ考え方です。',
+  examples:function(){return [[9,2],[8,3],[7,4]].map(function(p){return qAdd(p[0],p[1],10)})},
+  practice:function(){return pickN(add10,8).map(function(p){return qAdd(p[0],p[1],10)})}},
+ {id:'s7',no:'⑦',g:1,short:'10からひく',title:'10からひく（10−1 〜 10−9）',
+  desc:'10個の箱から とると のこりは何個か。10−1 から 10−9 までを練習します。この力が、あとで くり下がりに使えます。',
+  examples:function(){return [1,2,3,9].map(function(k){return qSub(10,k)})},
+  practice:function(){return shuffle(range(1,9)).map(function(k){return qSub(10,k)})}},
+ {id:'s8a',no:'⑧-1',g:2,short:'十いくつ',title:'十いくつ（11〜20）',
+  desc:'10の箱がいっぱいで、となりに いくつあるか。10＋5＝15 のように「10と いくつ」で数を作ります。15〜20を中心に練習します。',
+  examples:function(){return [qTeen(5,'sum'),qTeen(7,'sum'),qTeen(10,'sum'),qTeen(8,'split')]},
+  practice:function(){var ty=shuffle(['sum','sum','sum','sum','split','split','split','split']);return shuffle([5,6,7,8,9,10,3,4]).map(function(n,i){return qTeen(n,ty[i])})}},
+ {id:'s8b',no:'⑧-2',g:2,short:'くり上がり〜18',title:'くり上がりのたし算（18まで）',
+  desc:'8＋7、9＋6 のように、どちらも大きい数のたし算です。大きいほうを10にして考えます。',
+  examples:function(){return [[8,7],[9,6],[9,9]].map(function(p){return qAdd(p[0],p[1],10)})},
+  practice:function(){return pickN(add10b,8).map(function(p){return qAdd(p[0],p[1],10)})}},
+ {id:'s8c',no:'⑧-3',g:2,short:'くり下がり（発展）',title:'くり下がりのひき算（発展）',
+  desc:'13−4 は、13を「10と3」と見て、10から4をひいて6、のこった3をたして 6＋3＝9。10からひく力を使います。',
+  examples:function(){return [[13,4],[12,5],[15,8]].map(function(p){return qBorrow(p[0],p[1])})},
+  practice:function(){return pickN(borrow,8).map(function(p){return qBorrow(p[0],p[1])})}},
+ {id:'s8d',no:'⑧-4',g:2,short:'20＋10まで',title:'10のたば（20＋10 まで）',
+  desc:'10を1まとまりとして、10＋10、20＋10、30−10 などを考えます。10が何個分かを数えると、答えがすぐ出ます。',
+  examples:function(){return [[10,10,'+'],[20,10,'+'],[30,10,'-']].map(function(p){return qTens(p[0],p[1],p[2])})},
+  practice:function(){return withRepeats(tensBase,8).map(function(p){return qTens(p[0],p[1],p[2])})}},
+ {id:'h30',no:'⑨',g:3,short:'30＋',title:'30を作る（28＋3＝30＋1）',desc:bridgeDesc(30),
+  examples:function(){return [[28,3],[27,5],[23,9]].map(function(p){return qBridge(p[0],p[1],30)})},practice:function(){return bridgeList(30)}},
+ {id:'h40',no:'⑩',g:3,short:'40＋',title:'40を作る（38＋3＝40＋1）',desc:bridgeDesc(40),
+  examples:function(){return [[38,3],[37,5],[33,9]].map(function(p){return qBridge(p[0],p[1],40)})},practice:function(){return bridgeList(40)}},
+ {id:'h50',no:'⑪',g:3,short:'50＋',title:'50を作る（48＋3＝50＋1）',desc:bridgeDesc(50),
+  examples:function(){return [[48,3],[47,5],[43,9]].map(function(p){return qBridge(p[0],p[1],50)})},practice:function(){return bridgeList(50)}},
+ {id:'p21',no:'⑫',g:4,nopat:true,short:'2桁＋1桁',title:'2桁＋1桁のひっ算',
+  desc:'位をそろえて書き、一の位から計算します。10をこえたら 1 を十の位に くり上げます。',
+  examples:function(){return [[34,5],[38,7],[47,6]].map(function(p){return qHissan(p[0],p[1],'+')})},
+  practice:function(){return mixed(H1c,H1n).map(function(p){return qHissan(p[0],p[1],'+')})}},
+ {id:'p22',no:'⑬',g:4,nopat:true,short:'2桁＋2桁',title:'2桁＋2桁のひっ算',
+  desc:'一の位どうし、十の位どうしを たします。一の位が10以上になったら、くり上げた 1 を十の位に たします。',
+  examples:function(){return [[23,14],[28,35],[47,36]].map(function(p){return qHissan(p[0],p[1],'+')})},
+  practice:function(){return mixed(H2c,H2n).map(function(p){return qHissan(p[0],p[1],'+')})}},
+ {id:'m21',no:'⑭',g:4,nopat:true,short:'2桁−1桁',title:'2桁−1桁のひっ算',
+  desc:'一の位からひきます。ひけないときは 十の位から 1 かりて、10 をたしてから ひきます。かりた十の位は 1 へります。',
+  examples:function(){return [[38,5],[42,7],[30,6]].map(function(p){return qHissan(p[0],p[1],'-')})},
+  practice:function(){return mixed(S1b,S1n).map(function(p){return qHissan(p[0],p[1],'-')})}},
+ {id:'m22',no:'⑮',g:4,nopat:true,short:'2桁−2桁',title:'2桁−2桁のひっ算',
+  desc:'一の位、十の位の順にひきます。一の位がひけないときは 十の位から 1 かります。',
+  examples:function(){return [[58,24],[52,38],[91,47]].map(function(p){return qHissan(p[0],p[1],'-')})},
+  practice:function(){return mixed(S2b,S2n).map(function(p){return qHissan(p[0],p[1],'-')})}},
+ {id:'p31',no:'⑯',g:4,nopat:true,short:'3桁＋2桁',title:'3桁＋2桁のひっ算',
+  desc:'百・十・一の位をそろえて書きます。一の位から順にたし、10をこえたら 1 を上の位にくり上げます。1回6問です。',
+  examples:function(){return [[234,15],[258,37],[467,86]].map(function(p){return qHissan3(p[0],p[1],'+')})},
+  practice:function(){return hGen('p31').map(function(p){return qHissan3(p[0],p[1],p[2])})}},
+ {id:'m31',no:'⑰',g:4,nopat:true,short:'3桁−2桁',title:'3桁−2桁のひっ算',
+  desc:'一の位からひきます。ひけないときは 上の位から 1 かりて 10 をたし、かりた位は 1 へらします。1回6問です。',
+  examples:function(){return [[358,24],[342,17],[523,87]].map(function(p){return qHissan3(p[0],p[1],'-')})},
+  practice:function(){return hGen('m31').map(function(p){return qHissan3(p[0],p[1],p[2])})}},
+ {id:'p33',no:'⑱',g:4,nopat:true,short:'3桁＋3桁',title:'3桁＋3桁のひっ算',
+  desc:'3つの位を、一の位→十の位→百の位の順にたします。くり上げた 1 を わすれないようにします。1回6問です。',
+  examples:function(){return [[234,145],[358,267],[476,385]].map(function(p){return qHissan3(p[0],p[1],'+')})},
+  practice:function(){return hGen('p33').map(function(p){return qHissan3(p[0],p[1],p[2])})}},
+ {id:'m33',no:'⑲',g:4,nopat:true,short:'3桁−3桁',title:'3桁−3桁のひっ算',
+  desc:'一の位→十の位→百の位の順にひきます。ひけないときは 上の位から かりて、かした位は 1 へらしてからひきます。1回6問です。',
+  examples:function(){return [[587,243],[532,278],[724,385]].map(function(p){return qHissan3(p[0],p[1],'-')})},
+  practice:function(){return hGen('m33').map(function(p){return qHissan3(p[0],p[1],p[2])})}}
+];
+function stepById(id){for(var i=0;i<STEPS.length;i++)if(STEPS[i].id===id)return STEPS[i]}
+
+/* ---------- 記録（この端末のブラウザだけ） ---------- */
+var KEY='kogen-matomari-v2',mem=null;
+function loadAll(){
+  if(mem)return mem;
+  try{mem=JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch(e){mem={}}
+  return mem;
+}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(mem||{}))}catch(e){}}
+function addScore(id,score){var p=loadAll();(p[id]=p[id]||[]).push(score);persist()}
+function scoresOf(id){var a=loadAll()[id];return Array.isArray(a)?a:[]}
+function starsOf(id){var a=scoresOf(id);if(!a.length)return 0;var m=Math.max.apply(null,a);return m>=100?3:(m>=75?2:(m>0?1:0))}
+function starsText(n){return n?'★★★'.slice(0,n)+'☆☆☆'.slice(0,3-n):''}
+function scoreText(arr){return arr.map(function(s,i){return (i+1)+'回目（'+PAT[PAT_KEYS[i%4]].name+'）'+s+'点'+(s>=PASS?' ✓':'')}).join('　')}
+
+/* ---------- 状態 ---------- */
+var S={step:STEPS[0],mode:'explain',exList:[],ex:0,stage:0,prac:null};
+var PRAISE=['せいかい！','そのとおり！','いいですね！','できました！','よくできました！'];
+
+/* 達成度：最高点が PASS 点以上で「合格」 */
+var PASS=80;
+var LIVE={}; /* 挑戦中の単元 → いまの得点（0〜100）。挑戦を始めると0にもどり、問題を終えるごとに伸びる */
+function bestOf(id){var a=scoresOf(id);return a.length?Math.max.apply(null,a):0}
+function lastOf(id){var a=scoresOf(id);return a.length?a[a.length-1]:0}
+function isPassed(id){return bestOf(id)>=PASS}
+function barVal(id){return LIVE[id]!==undefined?LIVE[id]:lastOf(id)}
+function attemptPat(id){return PAT_KEYS[scoresOf(id).length%4]} /* 1回目〇、2回目りんご、3回目なし、4回目もも、5回目〇… */
+function barHtml(pct,label,mark){
+  return '<span class="bar'+(mark&&pct>=PASS?' ok':'')+'" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+pct+'" aria-label="'+label+'"><i style="width:'+pct+'%"></i>'+(mark?'<u style="left:'+PASS+'%"></u>':'')+'</span>';
+}
+function renderNav(){
+  var h='',total=STEPS.length,passedN=0;
+  GROUPS.forEach(function(gn,gi){
+    var inG=STEPS.filter(function(s){return s.g===gi}),pn=inG.filter(function(s){return isPassed(s.id)}).length;
+    passedN+=pn;
+    h+='<div class="grow"><div class="gname"><b>'+gn+'</b><span class="gcount">'+pn+' / '+inG.length+' 合格</span></div><div class="ugrid">';
+    inG.forEach(function(s){
+      var n=scoresOf(s.id).length,live=LIVE[s.id]!==undefined,last=lastOf(s.id),ever=isPassed(s.id);
+      var stat=live?'挑戦中':(!n?'':(last>=PASS?'合格 ✓':(ever?'合格済 ✓':last+'点')));
+      h+='<button type="button" class="unit'+(ever?' passed':'')+'" data-step="'+s.id+'"'+(s.id===S.step.id?' aria-current="true"':'')+'>'+
+        '<span class="u-top"><span class="u-no">'+s.no+'</span><span class="u-stat">'+stat+'</span></span>'+
+        '<span class="u-title">'+s.short+'</span>'+barHtml(barVal(s.id),s.short+'の達成度',true)+'</button>';
+    });
+    h+='</div></div>';
+  });
+  h+='<p class="ilegend"><span class="lg-line"></span>棒の縦線は合格ライン（'+PASS+'点）。超えると緑になります。</p>';
+  $('#nav').innerHTML=h;
+  $('#overall').innerHTML='<span class="ostat"><b>'+passedN+'</b><span>/ '+total+'　合格した単元</span></span>'+barHtml(Math.round(passedN*100/total),'合格した単元の割合',false);
+}
+var navOpen=true;
+try{navOpen=localStorage.getItem('kogen-nav-open')!=='0'}catch(e){}
+function applyNav(){
+  $('#nav').hidden=!navOpen;
+  var b=$('#navToggle');b.setAttribute('aria-expanded',navOpen);b.textContent=navOpen?'一覧をとじる':'単元一覧をひらく';
+}
+function toggleNav(){navOpen=!navOpen;applyNav();try{localStorage.setItem('kogen-nav-open',navOpen?'1':'0')}catch(e){}}
+function renderUnitBar(){
+  var s=S.step,n=scoresOf(s.id).length,live=LIVE[s.id]!==undefined,v=barVal(s.id),last=lastOf(s.id),best=bestOf(s.id),txt;
+  if(live)txt=(n+1)+'回目に挑戦中　いま '+v+'点'+(v>=PASS?'（合格ライン超え！ 最後まで がんばろう）':'');
+  else if(!n)txt='れんしゅうで '+PASS+'点以上とると 合格です';
+  else if(last>=PASS)txt='<b class="pass">合格 やったね！</b>'+n+'回目 '+last+'点';
+  else if(best>=PASS)txt='<b class="pass">合格済み</b>（最高 '+best+'点）　'+n+'回目 '+last+'点';
+  else txt=n+'回目 '+last+'点　合格まで あと '+(PASS-last)+'点（'+PASS+'点以上で合格）';
+  $('#unitBar').innerHTML='<div class="ubar">'+barHtml(v,'達成度',true)+'<p class="ustat">'+txt+'</p></div>';
+}
+function renderHead(){
+  var s=S.step;
+  $('#stepNo').textContent='ステップ '+s.no;
+  $('#stepTitle').textContent=s.title;
+  $('#stepDesc').textContent=s.desc;
+  $('#tabExplain').setAttribute('aria-pressed',S.mode==='explain');
+  $('#tabPractice').setAttribute('aria-pressed',S.mode==='practice');
+  var sc=scoresOf(s.id);
+  $('#scoreLine').textContent=sc.length?'点数の記録　'+scoreText(sc):'';
+  renderUnitBar();
+  var row=$('#patRow');
+  if(S.mode==='practice'&&s.rotate){row.hidden=true;return}
+  if(s.id==='s8d'||s.nopat||s.g===3&&false){row.hidden=true;return}
+  row.hidden=false;
+  var cur=(S.mode==='practice'&&S.prac)?S.prac.patKey:attemptPat(s.id);
+  var h='<span class="lab">図の絵（挑戦ごとに かわります）：</span>';
+  PAT_KEYS.forEach(function(k,i){
+    var p=PAT[k];
+    h+='<span class="pat'+(k===cur?' on':'')+'"><small>'+(i+1)+'回目</small>'+(p.emoji?'<span>'+p.emoji+'</span>':'<span class="mini"></span>')+p.name+'</span>';
+  });
+  h+='<span class="lab">5回目から また 〇</span>';
+  row.innerHTML=h;
+}
+
+function blankHtml(t){return '<span class="blank" id="blank">'+t+'</span>'}
+function linesHtml(q,stage,mode,buf){
+  var n=q.steps.length,h='<div class="lines">';
+  if(q.main)h+='<div class="main">'+q.main(stage>=n?'<span class="ans">'+q.final+'</span>':'<span class="sq">□</span>')+'</div>';
+  for(var i=0;i<=Math.min(stage,n-1);i++){
+    var s=q.steps[i],tag=s.tag?'<span class="tag">'+s.tag+'</span>':'';
+    if(i<stage)h+='<div class="line done">'+tag+'<span class="eq">'+s.text('<span class="ans">'+s.ans+'</span>')+'</span></div>';
+    else h+='<div class="line active">'+tag+'<span class="eq">'+s.text(blankHtml(mode==='practice'?(buf||'&nbsp;'):'？'))+'</span></div>';
+  }
+  return h+'</div>';
+}
+
+/* ---------- せつめい ---------- */
+function startExplain(){delete LIVE[S.step.id];pattern=attemptPat(S.step.id);S.mode='explain';S.exList=S.step.examples();S.ex=0;S.stage=0;S.prac=null;renderNav();renderHead();renderExplain()}
+function renderExplain(){
+  var q=S.exList[S.ex],n=q.steps.length,st=S.stage,last=S.ex===S.exList.length-1;
+  var nextLabel=st<n?'つぎへ':(last?'れんしゅうを はじめる':'つぎの れい');
+  $('#view').innerHTML='<div class="work"><div class="card"><p class="cardhead">れい '+(S.ex+1)+' / '+S.exList.length+'</p><div class="figbody">'+q.fig(st)+'</div></div>'+
+   '<div class="card">'+linesHtml(q,st,'explain')+'<p class="say">'+q.say[st]+'</p>'+(st>=n?'<div class="donebox">'+q.done+'</div>':'')+
+   '<div class="navbtns"><button type="button" class="btn" id="exPrev"'+(S.ex===0&&st===0?' disabled':'')+'>もどる</button><button type="button" class="btn primary" id="exNext">'+nextLabel+'</button></div></div></div>';
+}
+function explainNext(){
+  var q=S.exList[S.ex],n=q.steps.length;
+  if(S.stage<n)S.stage++;
+  else if(S.ex<S.exList.length-1){S.ex++;S.stage=0}
+  else{startPractice();return}
+  renderExplain();
+}
+function explainPrev(){
+  if(S.stage>0)S.stage--;
+  else if(S.ex>0){S.ex--;S.stage=S.exList[S.ex].steps.length}
+  renderExplain();
+}
+
+/* ---------- れんしゅう ---------- */
+function newPrac(list,retry){return {list:list,retry:!!retry,patKey:pattern,i:0,stage:0,buf:'',att:0,hint:false,msg:null,qmiss:false,helped:false,res:[],finished:false}}
+function startPractice(){S.mode='practice';pattern=attemptPat(S.step.id);S.prac=newPrac(S.step.practice());LIVE[S.step.id]=0;renderNav();renderHead();renderPractice()}
+function curQ(){return S.prac.list[S.prac.i]}
+function keypadHtml(){
+  var keys=['7','8','9','4','5','6','1','2','3','back','0','enter'],h='<div class="keypad">';
+  keys.forEach(function(k){
+    if(k==='back')h+='<button type="button" class="key" data-key="back" aria-label="1文字消す">⌫</button>';
+    else if(k==='enter')h+='<button type="button" class="key enter" data-key="enter">決定</button>';
+    else h+='<button type="button" class="key" data-key="'+k+'">'+k+'</button>';
+  });
+  return h+'</div>';
+}
+function renderPractice(){
+  var p=S.prac;
+  if(p.finished){renderResult();return}
+  var q=curQ(),n=q.steps.length,done=p.stage>=n;
+  var dots=p.list.map(function(_,i){return '<span class="pd '+(i<p.i?(p.res[i]?'ok':'miss'):(i===p.i?'cur':''))+'"></span>'}).join('');
+  var lastQ=p.i===p.list.length-1;
+  var side=linesHtml(q,p.stage,'practice',p.buf)+'<div class="msg '+(p.msg?p.msg.type:'')+'" id="msg" role="status">'+(p.msg?p.msg.text:'')+'</div>';
+  if(done)side+='<div class="donebox">'+q.done+'</div><div class="actions"><button type="button" class="btn primary" id="nextQ">'+(lastQ?'けっかを見る':'つぎの問題へ')+'</button></div>';
+  else side+='<div class="hintbox" id="hint"'+(p.hint?'':' hidden')+'>'+q.say[p.stage]+'</div>'+keypadHtml()+'<div class="actions"><button type="button" class="btn" id="hintBtn">ヒントを見る</button></div>';
+  $('#view').innerHTML='<div class="progress"><span class="pcount">'+(p.i+1)+' / '+p.list.length+' 問</span><span class="pdots">'+dots+'</span></div>'+
+    '<div class="work"><div class="card"><div class="figbody">'+q.fig(p.stage)+'</div></div><div class="card">'+side+'</div></div>';
+}
+function setMsg(type,text){S.prac.msg={type:type,text:text};var m=$('#msg');if(m){m.className='msg '+type;m.textContent=text}}
+function updateBlank(){var b=$('#blank');if(b)b.innerHTML=S.prac.buf||'&nbsp;'}
+function press(d){var p=S.prac;if(!p||p.finished||p.stage>=curQ().steps.length)return;if(p.buf.length<2){p.buf+=d;updateBlank()}}
+function backspace(){var p=S.prac;if(!p||p.finished)return;p.buf=p.buf.slice(0,-1);updateBlank()}
+function submit(){
+  var p=S.prac;if(!p||p.finished)return;
+  var q=curQ(),n=q.steps.length;
+  if(p.stage>=n){nextQuestion();return}
+  if(p.buf===''){setMsg('warn','数字を入れてから「決定」を押してね。');return}
+  var step=q.steps[p.stage];
+  if(+p.buf===step.ans){
+    p.stage++;p.buf='';p.att=0;p.hint=false;
+    p.msg={type:'good',text:PRAISE[rnd(PRAISE.length)]};
+    renderPractice();
+    if(p.stage>=n){afterQuestionDone();if(!p.helped)petals()}
+  }else{
+    p.att++;p.qmiss=true;p.buf='';updateBlank();
+    var b=$('#blank');if(b){b.classList.remove('shake');void b.offsetWidth;b.classList.add('shake')}
+    if(p.att>=3){
+      p.msg={type:'warn',text:'答えは '+step.ans+' です。図を見て、いっしょに確かめましょう。'};
+      p.helped=true;p.stage++;p.att=0;p.hint=false;renderPractice();
+      if(p.stage>=n)afterQuestionDone();
+    }else if(p.att===2){
+      p.hint=true;var h=$('#hint');if(h)h.hidden=false;
+      setMsg('warn','もう一度。ヒントを出しました。図の丸を数えてみよう。');
+    }else setMsg('warn','おしい。もう一度 数えてみよう。');
+  }
+}
+/* 1問終わるたびに、いまの得点（棒）を更新する */
+function afterQuestionDone(){
+  var p=S.prac;
+  p.res[p.i]=!p.qmiss;
+  if(!p.retry){
+    LIVE[S.step.id]=Math.round(p.res.filter(Boolean).length*100/p.list.length);
+    renderNav();renderUnitBar();
+  }
+}
+function nextQuestion(){
+  var p=S.prac;
+  p.res[p.i]=!p.qmiss;
+  p.i++;p.stage=0;p.buf='';p.att=0;p.hint=false;p.msg=null;p.qmiss=false;p.helped=false;
+  if(p.i>=p.list.length){
+    p.finished=true;
+    p.score=Math.round(p.res.filter(Boolean).length*100/p.list.length);
+    if(!p.retry){delete LIVE[S.step.id];addScore(S.step.id,p.score)}
+    renderNav();renderHead();
+  }
+  renderPractice();
+}
+function renderResult(){
+  var p=S.prac,total=p.list.length,ok=p.res.filter(Boolean).length;
+  var stars=ok===total?3:(ok/total>=0.75?2:1);
+  var missed=p.list.filter(function(_,i){return !p.res[i]});
+  var idx=STEPS.indexOf(S.step),nextStep=STEPS[idx+1];
+  var h='<div class="card result"><h3>'+(ok===total?'ぜんぶ ひとりで できました！':total+'問中 '+ok+'問、ひとりで できました')+'</h3><div class="bigstars" aria-label="星'+stars+'つ">'+starsText(stars)+'</div>';
+  if(p.retry){h+='<p>やり直しの結果です（点数の記録には入りません）。</p>'}
+  else{
+    if(p.score>=PASS)h+='<p class="passbanner">合格 やったね！</p>';
+    else if(isPassed(S.step.id))h+='<p class="needmore">今回は '+PASS+'点に届きませんでしたが、このステップは もう合格しています。</p>';
+    else h+='<p class="needmore">合格まで あと '+(PASS-p.score)+'点（'+PASS+'点以上で合格）。もう一度ためしてみよう。</p>';
+    var all=scoresOf(S.step.id),st0=Math.max(0,all.length-8);
+    h+='<p class="scores">'+all.slice(st0).map(function(s,i){var last=st0+i===all.length-1;return '<span class="scorebox'+(last?' now':'')+'"><small>'+(st0+i+1)+'回目（'+PAT[PAT_KEYS[(st0+i)%4]].name+'）</small><b>'+s+'点'+(s>=PASS?' ✓':'')+'</b></span>'}).join('')+'</p>';
+  }
+  if(missed.length){h+='<p>もう一度やってみたい問題：</p><ul class="misslist">'+missed.map(function(q){return '<li>'+q.label+'</li>'}).join('')+'</ul>'}
+  h+='<div class="actions">';
+  if(missed.length)h+='<button type="button" class="btn primary" data-act="retry">まちがえた問題だけ やり直す</button>';
+  h+='<button type="button" class="btn'+(missed.length?'':' primary')+'" data-act="again">新しい問題でもう一度</button>';
+  if(nextStep)h+='<button type="button" class="btn" data-act="next">つぎのステップへ（'+nextStep.no+'）</button>';
+  h+='<button type="button" class="btn" data-act="explain">せつめいを見る</button></div></div>';
+  $('#view').innerHTML=h;
+  S.missed=missed;
+}
+
+/* ---------- 花吹雪（1問ごとに、自分で正解できたとき） ---------- */
+function petals(){
+  if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  var c=document.createElement('canvas');
+  c.setAttribute('aria-hidden','true');c.id='petals';
+  c.style.cssText='position:fixed;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:50';
+  var dpr=window.devicePixelRatio||1,W=window.innerWidth,H=window.innerHeight;
+  c.width=W*dpr;c.height=H*dpr;document.body.appendChild(c);
+  var x=c.getContext('2d');x.scale(dpr,dpr);
+  var cols=['#ffb7c5','#ff9db4','#ffc8d6','#f7a1bd','#ffe1e9'],ps=[],i;
+  for(i=0;i<90;i++)ps.push({x:Math.random()*W*0.9-W*0.1,y:-30-Math.random()*H*0.6,s:7+Math.random()*9,
+    vy:1.6+Math.random()*2.4,vx:1+Math.random()*2.6,ph:Math.random()*6.28,sw:.04+Math.random()*.05,rot:Math.random()*6.28,vr:(Math.random()-.5)*.12,col:cols[i%cols.length]});
+  var t0=null;
+  function frame(ts){
+    if(t0===null)t0=ts;
+    x.clearRect(0,0,W,H);
+    var alive=0;
+    ps.forEach(function(p){
+      p.x+=p.vx+Math.sin(p.ph)*1.2;p.y+=p.vy;p.ph+=p.sw*3;p.rot+=p.vr;
+      if(p.y<H+30&&p.x<W+40)alive++;
+      x.save();x.translate(p.x,p.y);x.rotate(p.rot);x.scale(1,Math.cos(p.ph)*.8+.2);
+      x.fillStyle=p.col;x.beginPath();
+      x.moveTo(0,-p.s);x.bezierCurveTo(p.s,-p.s*.6,p.s*.8,p.s*.7,0,p.s);
+      x.bezierCurveTo(-p.s*.8,p.s*.7,-p.s,-p.s*.6,0,-p.s);x.fill();
+      x.restore();
+    });
+    if(alive>0&&ts-t0<4500)requestAnimationFrame(frame);
+    else if(c.parentNode)c.parentNode.removeChild(c);
+  }
+  requestAnimationFrame(frame);
+}
+
+/* ---------- 切りかえ ---------- */
+function setStep(id){delete LIVE[S.step.id];S.step=stepById(id);startExplain()}
+
+document.addEventListener('click',function(e){
+  var t=e.target,el;
+  if((el=t.closest('[data-step]'))){setStep(el.dataset.step);return}
+  if((el=t.closest('[data-pat]'))){
+    pattern=el.dataset.pat;renderHead();
+    if(S.mode==='explain')renderExplain();
+    else if(S.prac&&!S.prac.finished){var fb=$('.figbody');if(fb)fb.innerHTML=curQ().fig(S.prac.stage)}
+    return;
+  }
+  if(t.closest('#navToggle')){toggleNav();return}
+  if(t.closest('#notesClose')){var nd=$('.notes');nd.open=false;nd.scrollIntoView({block:'nearest'});return}
+  if(t.closest('#resetBtn')){
+    var rb=$('#resetBtn');
+    if(rb.dataset.armed){mem={};persist();rb.dataset.armed='';rb.textContent='点数の記録を消す';renderNav();renderHead()}
+    else{rb.dataset.armed='1';rb.textContent='もう一度押すと、すべての点数が消えます';setTimeout(function(){rb.dataset.armed='';rb.textContent='点数の記録を消す'},4000)}
+    return;
+  }
+  if(t.closest('#tabExplain')){startExplain();return}
+  if(t.closest('#tabPractice')){startPractice();return}
+  if((el=t.closest('[data-tap]'))){toggleCell(el);return}
+  if((el=t.closest('[data-key]'))){var k=el.dataset.key;if(k==='back')backspace();else if(k==='enter')submit();else press(k);return}
+  if(t.closest('#exNext')){explainNext();return}
+  if(t.closest('#exPrev')){explainPrev();return}
+  if(t.closest('#nextQ')){nextQuestion();return}
+  if(t.closest('#hintBtn')){var h=$('#hint');if(h)h.hidden=!h.hidden;S.prac.hint=h?!h.hidden:false;return}
+  if((el=t.closest('[data-act]'))){
+    var a=el.dataset.act;
+    if(a==='retry'){S.prac=newPrac(S.missed,true);renderPractice()}
+    else if(a==='again')startPractice();
+    else if(a==='next'){setStep(STEPS[STEPS.indexOf(S.step)+1].id)}
+    else if(a==='explain')startExplain();
+  }
+});
+document.addEventListener('keydown',function(e){
+  var t=e.target;
+  if(t&&t.matches&&t.matches('[data-tap]')&&(e.key==='Enter'||e.key===' ')){e.preventDefault();toggleCell(t);return}
+  if(S.mode!=='practice'||!S.prac)return;
+  if(t&&t.tagName==='BUTTON'&&(e.key==='Enter'||e.key===' '))return;
+  if(/^[0-9]$/.test(e.key))press(e.key);
+  else if(e.key==='Backspace')backspace();
+  else if(e.key==='Enter'){e.preventDefault();submit()}
+});
+
+applyNav();renderNav();renderHead();startExplain();
+})();
+</script>
