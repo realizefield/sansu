@@ -1,0 +1,1328 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>九九と筆算の道場 単元テスト</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Zen+Maru+Gothic:wght@500;700&display=swap">
+<style>
+/* Layout: 上にステップ選択、下に「図」と「式・入力」を左右に並べる作業パネル（狭い画面では縦積み）。
+   箱の青い丸は手元の教材の図に合わせ、強調の「あと」の分だけオレンジにする。 */
+:root{
+  --bg:#edf1f6; --surface:#ffffff; --surface2:#f5f8fc; --ink:#14202e; --muted:#566678;
+  --line:#d3dce7; --line-strong:#8fa0b4; --boxline:#24364b;
+  --blue:#1d74d8; --blue-ink:#0f4c9a; --blue-soft:#dcebfb; --on-blue:#ffffff;
+  --orange:#ee8416; --orange-soft:#fff0dc;
+  --good:#12804d; --good-soft:#dff3e8; --warn:#9a5200; --warn-soft:#fdecd3;
+  --font-body:"BIZ UDPGothic","Hiragino Sans","Yu Gothic UI","Meiryo",sans-serif;
+  --font-num:"Zen Maru Gothic","BIZ UDPGothic","Hiragino Maru Gothic ProN","Meiryo",sans-serif;
+  --cs:clamp(30px,8.4vw,52px); --g:6px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e1621; --surface:#172130; --surface2:#1e2b3d; --ink:#e8eef6; --muted:#9db0c4;
+    --line:#2b394e; --line-strong:#5d7189; --boxline:#9db3cc;
+    --blue:#4d9bf0; --blue-ink:#8cc0fa; --blue-soft:#1b3350; --on-blue:#06182c;
+    --orange:#f5a04a; --orange-soft:#3a2a16;
+    --good:#4cc58b; --good-soft:#15362a; --warn:#f0b463; --warn-soft:#3a2d17;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e1621; --surface:#172130; --surface2:#1e2b3d; --ink:#e8eef6; --muted:#9db0c4;
+  --line:#2b394e; --line-strong:#5d7189; --boxline:#9db3cc;
+  --blue:#4d9bf0; --blue-ink:#8cc0fa; --blue-soft:#1b3350; --on-blue:#06182c;
+  --orange:#f5a04a; --orange-soft:#3a2a16;
+  --good:#4cc58b; --good-soft:#15362a; --warn:#f0b463; --warn-soft:#3a2d17;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:16px;line-height:1.7}
+button{font:inherit;color:inherit}
+.wrap{max-width:1000px;margin:0 auto;padding-block:22px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:18px}
+.eyebrow{margin:0;font-size:13px;letter-spacing:.12em;color:var(--muted)}
+h1{margin:2px 0 4px;font-family:var(--font-num);font-size:clamp(26px,5.6vw,36px);line-height:1.25;text-wrap:balance}
+.lead{margin:0;color:var(--muted);max-width:42em}
+
+/* ステップ選択 */
+:focus-visible{outline:3px solid var(--orange);outline-offset:2px}
+
+/* パネル */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:clamp(14px,3vw,24px);display:flex;flex-direction:column;gap:16px}
+.phead{display:flex;flex-wrap:wrap;gap:12px 20px;justify-content:space-between;align-items:flex-start}
+.phead>div:first-child{min-width:0;flex:1 1 320px}
+.stepno{margin:0;font-size:13px;color:var(--muted);letter-spacing:.08em}
+h2{margin:0;font-family:var(--font-num);font-size:clamp(22px,4.6vw,28px);line-height:1.3}
+.desc{margin:4px 0 0;color:var(--muted);max-width:46em}
+.seg{display:flex;border:1.5px solid var(--blue);border-radius:12px;overflow:hidden}
+.seg button{border:0;background:transparent;padding:10px 20px;cursor:pointer;color:var(--blue-ink);font-weight:700;min-height:44px}
+.seg button[aria-pressed="true"]{background:var(--blue);color:var(--on-blue)}
+.patrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.patrow .lab{font-size:14px;color:var(--muted);margin-right:4px}
+.pat{display:flex;align-items:center;gap:6px;border:1.5px solid var(--line);background:var(--surface2);border-radius:10px;padding:4px 12px;cursor:pointer;min-height:38px;font-size:14px}
+.pat[aria-pressed="true"]{border-color:var(--blue);background:var(--blue-soft)}
+.mini{display:inline-block;width:16px;height:16px;border-radius:50%;background:var(--blue)}
+
+/* 作業エリア */
+.work{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:820px){.work{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--surface2);border:1px solid var(--line);border-radius:14px;padding:clamp(12px,2.6vw,20px)}
+.cardhead{margin:0 0 10px;font-size:13px;letter-spacing:.08em;color:var(--muted);font-weight:700}
+.figbody{display:flex;flex-direction:column;gap:12px;min-height:90px}
+.figrow{display:flex;flex-wrap:wrap;align-items:center;gap:14px 18px}
+.op{font-family:var(--font-num);font-size:clamp(24px,6vw,34px);font-weight:700;color:var(--muted)}
+.frame{display:flex;flex-direction:column;gap:6px}
+.box{display:flex;gap:var(--g);padding:var(--g);border:3px solid var(--boxline);border-radius:10px;background:var(--surface)}
+.loose{display:grid;grid-template-columns:repeat(var(--n,5),var(--cs));gap:var(--g)}
+.tiles{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.tile{display:grid;place-items:center;width:clamp(48px,11vw,64px);height:clamp(48px,11vw,64px);border-radius:12px;background:var(--blue);color:var(--on-blue);font-family:var(--font-num);font-weight:700;font-size:clamp(18px,4vw,24px);position:relative}
+.tile.add{background:var(--orange);color:#1b1206}
+.tile.gone{background:transparent;border:2px dashed var(--line-strong);color:var(--line-strong)}
+.tile.gone::after{content:"✕";position:absolute;color:var(--warn);font-size:1.5em;opacity:.85}
+
+/* 丸・くだもの */
+.cell{width:var(--cs);height:var(--cs);display:grid;place-items:center;border-radius:50%;position:relative;font-size:calc(var(--cs)*.78);line-height:1;flex:none;user-select:none}
+.cell:not(.fruit).on{background:var(--blue)}
+.cell:not(.fruit).add{background:var(--orange)}
+.cell.off{border:2px dashed var(--line-strong)}
+.cell.ghost{border:2px dotted var(--line-strong);opacity:.7}
+.cell:not(.fruit).gone{border:2px dashed var(--line-strong)}
+.cell.fruit.add{box-shadow:0 0 0 3px var(--orange);}
+.cell.fruit.gone{opacity:.35}
+.cell.gone::after{content:"✕";position:absolute;font-size:.62em;font-weight:700;color:var(--warn);opacity:1}
+.cell[data-tap]{cursor:pointer}
+.cell[data-tap]:hover{box-shadow:0 0 0 3px var(--blue-soft)}
+.pop{animation:pop .35s ease-out}
+@keyframes pop{0%{transform:scale(.4)}70%{transform:scale(1.18)}100%{transform:scale(1)}}
+.tapinfo{margin:0;font-size:14px;color:var(--blue-ink);background:var(--blue-soft);border-radius:8px;padding:6px 10px;align-self:flex-start}
+
+/* 式 */
+.lines{display:flex;flex-direction:column;gap:10px}
+.main{font-family:var(--font-num);font-weight:700;font-size:clamp(26px,6vw,36px);line-height:1.3;padding-bottom:8px;border-bottom:1px dashed var(--line-strong)}
+.line{display:flex;flex-direction:column;gap:0;padding:6px 10px;border-radius:10px;border-left:5px solid transparent}
+.line.active{background:var(--blue-soft);border-left-color:var(--blue)}
+.line.done{border-left-color:var(--good)}
+.tag{font-size:13px;color:var(--muted)}
+.eq{font-family:var(--font-num);font-weight:700;font-size:clamp(24px,5.6vw,32px);line-height:1.4}
+.ans{color:var(--good)}
+.sq,.blank{display:inline-block;min-width:1.5em;text-align:center;border-bottom:3px solid var(--blue);background:var(--surface);border-radius:6px;padding:0 .15em;color:var(--blue-ink)}
+.sq{background:transparent;border-bottom:0;color:var(--muted)}
+.blank.shake{animation:shake .4s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.say{margin:12px 0 0;padding:10px 12px;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+.msg{min-height:1.7em;margin:10px 0 0;font-weight:700}
+.msg.good{color:var(--good)}
+.msg.warn{color:var(--warn)}
+.hintbox{margin:8px 0 0;padding:10px 12px;border-radius:10px;background:var(--warn-soft);color:var(--ink)}
+.donebox{margin:10px 0 0;padding:10px 12px;border-radius:10px;background:var(--good-soft);font-family:var(--font-num);font-weight:700;font-size:clamp(17px,3.8vw,21px);line-height:1.6}
+
+/* ボタン・テンキー */
+.btn{border:1.5px solid var(--line-strong);background:var(--surface);border-radius:12px;padding:10px 18px;cursor:pointer;min-height:48px;font-weight:700}
+.btn:hover{border-color:var(--blue)}
+.btn.primary{background:var(--blue);border-color:var(--blue);color:var(--on-blue)}
+.btn:disabled{opacity:.4;cursor:default}
+.navbtns,.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;max-width:340px}
+.key{border:1.5px solid var(--line-strong);background:var(--surface);border-radius:12px;min-height:54px;font-family:var(--font-num);font-size:24px;font-weight:700;cursor:pointer}
+.key:active{background:var(--blue-soft)}
+.key.enter{background:var(--blue);border-color:var(--blue);color:var(--on-blue);font-size:18px}
+.progress{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.pcount{font-weight:700}
+.pdots{display:flex;gap:6px;flex-wrap:wrap}
+.pd{width:14px;height:14px;border-radius:50%;border:2px solid var(--line-strong)}
+.pd.cur{border-color:var(--blue);background:var(--blue-soft)}
+.pd.ok{background:var(--good);border-color:var(--good)}
+.pd.miss{background:var(--orange);border-color:var(--orange)}
+
+/* 結果 */
+.result{display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+.result h3{margin:0;font-family:var(--font-num);font-size:clamp(22px,5vw,30px)}
+.bigstars{font-size:34px;letter-spacing:4px;color:var(--orange)}
+.misslist{margin:0;padding-left:1.2em;font-family:var(--font-num);font-weight:700}
+.notes{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 18px}
+.notes summary{cursor:pointer;font-weight:700;min-height:32px}
+.notes ul{margin:8px 0 0;padding-left:1.3em}
+.notes li{margin:4px 0}
+/* 達成度の棒グラフ・合格 */
+.bar{position:relative;display:block;height:8px;border-radius:99px;background:var(--line)}
+.bar i{display:block;height:100%;border-radius:99px;background:var(--blue);transition:width .5s ease}
+.bar u{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink);opacity:.5;text-decoration:none}
+.bar.ok i{background:var(--good)}
+.pat{cursor:default}
+.pat small{font-size:11px;color:var(--muted)}
+.pat.on{border-color:var(--blue);background:var(--blue-soft)}
+.pat:not(.on){opacity:.7}
+.ubar{display:flex;flex-direction:column;gap:6px;margin-top:10px;max-width:520px}
+.ubar .bar{height:14px}
+.ustat{margin:0;font-size:14px;color:var(--muted)}
+.ustat .pass{color:var(--good);font-size:20px;margin-right:10px;font-family:var(--font-num)}
+.passbanner{margin:0;padding:8px 18px;border-radius:12px;border:2px solid var(--good);background:var(--good-soft);color:var(--good);font-family:var(--font-num);font-weight:700;font-size:clamp(22px,5vw,30px)}
+.needmore{margin:0;color:var(--muted)}
+/* 単元一覧 */
+.index{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:clamp(14px,3vw,22px);display:flex;flex-direction:column;gap:14px}
+.ihead{display:flex;flex-wrap:wrap;align-items:center;gap:10px 20px}
+#overall{flex:1 1 320px;display:flex;align-items:center;gap:16px;min-width:0}
+.ostat{display:flex;align-items:baseline;gap:8px;white-space:nowrap}
+.ostat b{font-family:var(--font-num);font-size:36px;line-height:1}
+.ostat span{font-size:13px;color:var(--muted);letter-spacing:.06em}
+#overall .bar{flex:1 1 auto;height:6px;min-width:60px}
+.btn.small{min-height:40px;padding:6px 16px;font-size:14px;font-weight:400}
+#nav{display:flex;flex-direction:column}
+.grow{display:grid;grid-template-columns:150px minmax(0,1fr);gap:10px 20px;padding:14px 0;border-top:1px solid var(--line)}
+.gname{display:flex;flex-direction:column;gap:2px;padding-top:2px}
+.gname b{font-size:15px}
+.gcount{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.ugrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.unit{display:flex;flex-direction:column;justify-content:space-between;gap:8px;text-align:left;min-height:88px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);cursor:pointer;transition:border-color .15s,background .15s}
+.unit:hover{border-color:var(--blue)}
+.u-top{display:flex;justify-content:space-between;align-items:baseline;gap:6px}
+.u-no{font-family:var(--font-num);font-weight:700;color:var(--muted);font-size:15px}
+.u-stat{font-size:12px;color:var(--muted);white-space:nowrap}
+.u-title{font-size:15px;line-height:1.35;font-weight:700;flex:1}
+.unit .bar{height:5px}
+.unit.passed .u-stat{color:var(--good);font-weight:700}
+.unit[aria-current="true"]{background:var(--blue);border-color:var(--blue);color:var(--on-blue)}
+.unit[aria-current="true"] .u-no,.unit[aria-current="true"] .u-stat,.unit[aria-current="true"].passed .u-stat{color:var(--on-blue)}
+.unit[aria-current="true"] .bar{background:rgba(255,255,255,.35)}
+.unit[aria-current="true"] .bar i,.unit[aria-current="true"] .bar.ok i{background:var(--on-blue)}
+.unit[aria-current="true"] .bar u{background:var(--on-blue);opacity:.9}
+.ilegend{margin:0;padding-top:12px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px}
+.lg-line{display:inline-block;width:2px;height:12px;background:var(--ink);opacity:.5}
+@media (max-width:720px){
+  .grow{grid-template-columns:minmax(0,1fr)}
+  .gname{flex-direction:row;align-items:baseline;gap:10px}
+  .ugrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+/* ひっ算 */
+.hissan{align-self:flex-start;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 18px 14px}
+.hissan table{border-collapse:collapse;font-family:var(--font-num);font-weight:700;font-size:clamp(30px,8vw,44px);line-height:1.3;text-align:center}
+.hissan td{min-width:1.6em;padding:0 .12em}
+.hissan .hd td{font-size:13px;font-family:var(--font-body);font-weight:400;color:var(--muted);padding-bottom:4px}
+.hissan .mk td{font-size:.5em;height:1.3em;color:var(--orange);line-height:1}
+.hissan .sg{color:var(--muted);text-align:left}
+.hissan .r td{border-top:3px solid var(--boxline)}
+.hissan .r .ok{color:var(--good)}
+.hissan .cx{text-decoration:line-through;text-decoration-color:var(--orange);text-decoration-thickness:3px;color:var(--muted)}
+.hissan sup{font-size:.45em;color:var(--orange);vertical-align:top;position:relative;top:.15em}
+.ph{display:inline-block;width:.8em;height:.8em;border:2px dashed var(--line-strong);border-radius:6px;vertical-align:middle}
+/* 点数 */
+.scoreline{margin:6px 0 0;font-size:14px;font-weight:700;color:var(--blue-ink)}
+.scores{margin:0;display:flex;flex-wrap:wrap;gap:8px}
+.scorebox{background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:8px 16px;min-width:110px}
+.scorebox.now{border-color:var(--blue);background:var(--blue-soft)}
+.scorebox small{display:block;font-size:13px;color:var(--muted)}
+.scorebox b{font-family:var(--font-num);font-size:28px;line-height:1.2}
+@media (prefers-reduced-motion:reduce){.pop,.blank.shake{animation:none}}
+
+/* 九九アプリ */
+.beltchip{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:6px 14px}
+.btxt{display:flex;flex-direction:column;line-height:1.2}.btxt small{font-size:11px;color:var(--muted)}.btxt b{font-family:var(--font-num);font-size:18px}
+.belt{display:inline-block;width:46px;height:14px;border-radius:3px;border:2px solid var(--boxline);position:relative;flex:none}
+.belt::after{content:"";position:absolute;left:50%;top:-2px;bottom:-2px;width:10px;transform:translateX(-50%);background:inherit;border:2px solid var(--boxline);border-radius:2px}
+.belt.none{background:transparent;border-style:dashed;opacity:.6}.belt.none::after{display:none}
+.belt.white{background:#fff}.belt.black{background:#1b1b1f;border-color:#6b7280}.belt.black::after{border-color:#6b7280}
+.belt.big{width:150px;height:34px;border-width:3px}.belt.big::after{width:26px}
+.cere{display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 0}
+.ktable{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:3px}
+.kh{display:grid;place-items:center;font-size:13px;color:var(--muted);font-weight:700;min-height:26px}
+.k{display:grid;place-items:center;min-height:clamp(28px,6.4vw,40px);border-radius:7px;border:1px solid var(--line);background:var(--surface);font-family:var(--font-num);font-weight:700;font-size:clamp(12px,3.2vw,17px);color:var(--ink)}
+.k.heard{background:var(--surface2);color:var(--muted)}
+.k.ok,.k.m{background:hsl(var(--h) 75% 84%);border-color:hsl(var(--h) 55% 55%);color:#1b1b1f}
+.k.m:not(.ok){background:hsl(var(--h) 70% 88%)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .k.ok,:root:not([data-theme="light"]) .k.m{background:hsl(var(--h) 45% 30%);color:#fff;border-color:hsl(var(--h) 50% 55%)}}
+:root[data-theme="dark"] .k.ok,:root[data-theme="dark"] .k.m{background:hsl(var(--h) 45% 30%);color:#fff;border-color:hsl(var(--h) 50% 55%)}
+.k.hl{box-shadow:0 0 0 2px var(--orange)}
+.k.pulse{animation:pop .45s ease-out}
+.klegend{margin:10px 0 0;font-size:13px;color:var(--muted)}
+.tcard{align-self:start}
+.vpop{min-height:150px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;text-align:center}
+.vpop .popeq{font-family:var(--font-num);font-weight:700;font-size:clamp(36px,10vw,56px);color:hsl(var(--h) 60% 38%);animation:pop .35s ease-out}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .vpop .popeq{color:hsl(var(--h) 70% 72%)}}
+:root[data-theme="dark"] .vpop .popeq{color:hsl(var(--h) 70% 72%)}
+.popeq b{color:var(--good)}
+.popread{font-size:clamp(18px,4.4vw,24px);font-family:var(--font-num);font-weight:700;color:var(--muted)}
+.popcount{margin:8px 0 0;color:var(--muted);font-size:14px;min-height:1.7em}
+.vnote{margin:10px 0 0;font-size:12px;color:var(--muted);line-height:1.9}.vnote select{font:inherit;max-width:100%;padding:4px;border-radius:8px;border:1px solid var(--line-strong);background:var(--surface);color:var(--ink)}
+.mcq{font-family:var(--font-num);font-weight:700;font-size:clamp(34px,9vw,52px);text-align:center;margin:14px 0;line-height:1.3}
+.qm{color:var(--blue-ink)}
+.mcgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.mcb{border:2px solid var(--line-strong);background:var(--surface);border-radius:14px;min-height:72px;font-family:var(--font-num);font-weight:700;font-size:clamp(26px,7vw,36px);cursor:pointer}
+.mcb.long{font-size:clamp(18px,4.6vw,24px)}
+.mcb:hover:not(:disabled){border-color:var(--blue);background:var(--blue-soft)}
+.mcb.right{background:var(--good-soft);border-color:var(--good);color:var(--good)}
+.mcb.wrong{opacity:.4;border-style:dashed;text-decoration:line-through}
+.mcbarwrap{flex:1;min-width:120px}.mcbarwrap .bar{height:10px}
+.mccard{max-width:640px;margin:0 auto;width:100%}
+.work.one{grid-template-columns:minmax(0,1fr)}
+.rtitle{margin:0 0 8px;font-family:var(--font-num);font-size:clamp(22px,5vw,28px)}
+.dangrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:10px}
+.dbtn.done{border-color:var(--good);color:var(--good)}
+.hissan .lb td{border-bottom:3px solid var(--boxline)}
+.hissan .lb td.sg{border-bottom:0}
+.hissan .ok{color:var(--good)}
+.divt td{min-width:1.1em;height:1.35em}
+.divt .dv{border-right:3px solid var(--boxline);text-align:right;padding-right:.25em}
+.divt .dd{border-top:3px solid var(--boxline)}
+.divt .ul{border-bottom:3px solid var(--boxline)}
+.divt .dn{color:var(--orange)}
+.divt .rl{font-size:.5em;text-align:left;white-space:nowrap;color:var(--warn);padding-left:.6em}
+.topbar{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:flex-end;justify-content:space-between}
+@media (max-width:420px){.mcgrid{gap:8px}.hissan{padding:8px 10px 10px}}
+
+/* 単元テスト（4択）用 */
+.links{display:flex;flex-wrap:wrap;gap:4px 18px;margin-top:8px;font-size:14px}
+.links a{color:var(--blue-ink)}
+.rules{margin:8px 0 0;padding-left:1.3em}
+.chips{display:flex;gap:4px}
+.chip{font-style:normal;font-size:11px;font-weight:700;min-width:28px;text-align:center;padding:1px 4px;border-radius:6px;border:1px solid var(--line-strong);color:var(--muted);background:transparent}
+.chip.try{border-color:var(--orange);color:var(--warn)}
+.chip.ok{background:var(--good);border-color:var(--good);color:#fff}
+.unit[aria-current="true"] .chip{color:var(--on-blue);border-color:rgba(255,255,255,.7)}
+.unit[aria-current="true"] .chip.ok{background:#fff;color:var(--good)}
+.setcards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:820px){.setcards{grid-template-columns:minmax(0,1fr)}}
+.setcard{display:flex;flex-direction:column;gap:6px}
+.setcard .actions{margin-top:auto}
+.sname{margin:0;display:flex;align-items:baseline;gap:10px;font-size:18px}
+.snum{font-size:13px;color:var(--muted)}
+.sdesc{margin:0;color:var(--muted);font-size:14px}
+.sstat{margin:0;font-size:14px;min-height:1.6em}
+.sstat .pass{color:var(--good)}
+.flag{color:var(--warn);font-weight:700}
+.hint{margin:6px 0 0;font-size:13px;color:var(--muted)}
+.tcard{margin-top:12px;border-color:var(--orange);background:var(--orange-soft)}
+.qlist{display:flex;flex-direction:column;gap:12px;margin-top:10px}
+.qcard{margin:0;border:1px solid var(--line);position:relative;padding-top:14px}
+.qcard legend{padding:0}
+.qn{display:inline-grid;place-items:center;min-width:30px;height:30px;border-radius:50%;background:var(--blue);color:var(--on-blue);font-family:var(--font-num);font-weight:700;font-size:15px}
+.qstem{font-size:17px;line-height:1.7;margin:2px 0 6px}
+.qstem .ex{font-family:var(--font-num);font-weight:700;font-size:clamp(26px,6.4vw,38px);display:inline-block;margin-right:10px}
+.qstem .lead{color:var(--ink);font-size:16px;margin:2px 0}
+.qstem .wp{font-size:18px}
+.tfig{display:flex;margin:4px 0 8px}
+.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:6px}
+.opts.long{grid-template-columns:minmax(0,1fr)}
+@media (min-width:700px){.opts{grid-template-columns:repeat(4,minmax(0,1fr))}.opts.long{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.opt{display:flex;align-items:center;gap:8px;border:2px solid var(--line-strong);background:var(--surface);border-radius:12px;padding:8px 12px;min-height:52px;cursor:pointer}
+.opt input{position:absolute;opacity:0;pointer-events:none}
+.opt .kt{font-weight:700;color:var(--muted);font-size:14px}
+.opt .ct{font-family:var(--font-num);font-weight:700;font-size:clamp(18px,4.6vw,24px)}
+.opt:hover{border-color:var(--blue)}
+.opt.sel{border-color:var(--blue);background:var(--blue-soft)}
+.opt:focus-within{outline:3px solid var(--orange);outline-offset:2px}
+.pcount{font-weight:700}
+.closep{color:var(--warn);font-weight:700}
+.rtab{width:100%;border-collapse:collapse;font-family:var(--font-num);font-weight:700}
+.rtab th{font-size:13px;color:var(--muted);text-align:left;font-weight:400;padding:4px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+.rtab td{padding:6px 8px;border-bottom:1px solid var(--line);font-size:clamp(14px,3.4vw,18px)}
+.rtab tr.ng td{background:var(--warn-soft)}
+.rtab .okm{color:var(--good);font-size:1.2em}
+.rtab .ngm{color:var(--warn);font-size:1.2em}
+.rtab .catc{font-family:var(--font-body);font-weight:400;font-size:13px}
+.ctab .catn{white-space:nowrap}.ctab .catb{width:35%}
+.rwrap{width:100%;overflow-x:auto}
+.subh{margin:10px 0 0;font-size:15px}
+.feelbox .actions{margin-top:6px}
+.btn.feel[aria-pressed="true"]{background:var(--blue-soft);border-color:var(--blue)}
+.tsec summary{cursor:pointer;font-weight:700}
+.tinput{font:inherit;padding:8px 10px;border:1.5px solid var(--line-strong);border-radius:10px;background:var(--surface);color:var(--ink);min-height:44px}
+#pv{position:fixed;inset:0;z-index:100;background:var(--bg);overflow:auto;padding:0 0 40px}
+.pvbar{position:sticky;top:0;z-index:2;display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;background:var(--surface);border-bottom:1px solid var(--line);padding:8px 16px}
+.pvbtns{display:flex;gap:8px;flex-wrap:wrap}
+.pvnote{margin:8px 16px;font-size:13px;color:var(--muted)}
+.pvbody{padding:8px 8px 24px}
+.pvbody .paper{max-width:820px;margin:0 auto;border:1px solid var(--line);border-radius:6px}
+@media print{
+  body{background:#fff}
+  .wrap,.notes,#petals{display:none!important}
+  #pv{position:static;inset:auto;overflow:visible;background:#fff;padding:0}
+  .pvbar,.pvnote{display:none!important}
+  .pvbody{padding:0}
+  .pvbody .paper{border:0;max-width:none}
+  @page{size:A4;margin:12mm}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="eyebrow">江原予備校　小学校算数プログラム</p>
+    <h1 id="h1"></h1>
+    <p class="lead" id="lead"></p>
+    <nav class="links" id="links" aria-label="ほかのページ"></nav>
+  </header>
+  <section class="index" aria-label="単元一覧">
+    <div class="ihead">
+      <div id="overall"></div>
+      <button type="button" class="btn small" id="navToggle" aria-expanded="true" aria-controls="nav">一覧をとじる</button>
+    </div>
+    <nav id="nav" aria-label="単元"></nav>
+  </section>
+  <section class="panel">
+    <div class="phead">
+      <div>
+        <p class="stepno" id="stepNo"></p>
+        <h2 id="stepTitle"></h2>
+        <p class="desc" id="stepDesc"></p>
+        <p class="scoreline" id="scoreLine"></p>
+        <div id="unitBar"></div>
+      </div>
+    </div>
+    <div id="view"></div>
+  </section>
+  <details class="notes">
+    <summary>先生用メモ（進め方）</summary>
+    <ul id="notesList"></ul>
+    <div class="actions">
+      <button type="button" class="btn" id="resetBtn">テストの記録を消す</button>
+      <button type="button" class="btn primary" id="notesClose">メモをとじる</button>
+    </div>
+  </details>
+  <details class="notes tsec">
+    <summary>講師用（合言葉）</summary>
+    <div id="tbox"></div>
+  </details>
+</div>
+
+<script>
+(function(){
+'use strict';
+/* ===== 4択テストの問題づくり（固定の問題：単元×回ごとに同じ問題が出ます） ===== */
+let _s=1;
+function seedStr(str){let h=2166136261;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619)}_s=(h>>>0)||1}
+const rnd=n=>{_s=(_s+0x6D2B79F5)>>>0;let t=_s;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return Math.floor(((t^(t>>>14))>>>0)/4294967296*n)};
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]]}return a};
+const range=(a,b)=>{const r=[];for(let i=a;i<=b;i++)r.push(i);return r};
+const pick=a=>a[rnd(a.length)];
+const uniq=(arr,f)=>{const s=new Set();return arr.filter(x=>{const k=f(x);if(s.has(k))return false;s.add(k);return true})};
+const OPS={'+':'＋','-':'−','*':'×','/':'÷'};
+const POS=['一の位','十の位','百の位','千の位'];
+const digs=n=>String(n).split('').reverse().map(Number);
+const p10=k=>Math.pow(10,k);
+const KATA=['ア','イ','ウ','エ'];
+
+/* 図（ひっ算） */
+function vfig(a,b,sign){
+  const res=sign==='×'?a*b:(sign==='＋'?a+b:a-b);
+  const nc=Math.max(String(a).length,String(b).length,String(res).length);
+  const dg=v=>{const s=String(v),r=Array(nc).fill('');for(let i=0;i<s.length;i++)r[nc-s.length+i]=s[i];return r};
+  const row=(sg,cells,cls)=>`<tr class="${cls||''}"><td class="sg">${sg}</td>${cells.map(c=>`<td>${c}</td>`).join('')}</tr>`;
+  return `<div class="hissan"><table>${row('',dg(a))}${row(sign,dg(b))}${row('',Array(nc).fill('&nbsp;'),'r')}</table></div>`;
+}
+function dfig(N,d){
+  const dg=String(N).split(''),nc=dg.length+1,empty='<td></td>'.repeat(nc);
+  return `<div class="hissan"><table class="divt"><tr>${empty}</tr><tr><td class="dv">${d}</td>${dg.map(x=>`<td class="dd">${x}</td>`).join('')}</tr><tr>${empty}</tr></table></div>`;
+}
+
+/* ---------- くり上がり・くり下がり ---------- */
+function carriesAdd(a,b){const da=digs(a),db=digs(b),n=Math.max(da.length,db.length);let c=0;const pos=[];for(let i=0;i<n;i++){const s=(da[i]||0)+(db[i]||0)+c;c=s>=10?1:0;if(c)pos.push(i)}return pos}
+function borrowsSub(a,b){const da=digs(a),db=digs(b);let br=0;const pos=[];for(let i=0;i<da.length;i++){const t=da[i]-br-(db[i]||0);br=t<0?1:0;if(br)pos.push(i)}return pos}
+function carriesMul1(a,m){const d=digs(a);let c=0,n=0;for(let i=0;i<d.length-1;i++){const t=d[i]*m+c;c=Math.floor(t/10);if(c>0)n++}return n}
+function mulForget(a,m){const d=digs(a);let v=0;for(let i=0;i<d.length;i++){const t=d[i]*m;v+=(i<d.length-1?(t%10):t)*p10(i)}return v}
+function dropZero(n){const s=String(n),i=s.indexOf('0',1);if(i<0)return null;return +(s.slice(0,i)+s.slice(i+1))}
+
+/* ---------- まちがい方のモデル（数） ---------- */
+function addW(a,b){
+  const r=a+b,w=[],cp=carriesAdd(a,b);
+  if(cp.length){
+    const k=cp[0]+1;
+    w.push([r-p10(k),'くり上がりの 1 を たすのを わすれた']);
+    w.push([r+p10(k),'くり上がりの 1 を 2回 たしてしまった']);
+    if(a>=10||b>=10){const da=digs(a),db=digs(b),n=Math.max(da.length,db.length);let s='';for(let i=n-1;i>=0;i--)s+=((da[i]||0)+(db[i]||0));w.push([+s,'くり上がらずに、位ごとの答えを そのまま ならべて書いた'])}
+    else w.push([a,'はじめの数を そのまま 答えにした']);
+  }else{
+    if(a>=10||b>=10)w.push([r+10,'くり上がりが ないのに 1 を たしてしまった']);
+    if(a<10&&b<10)w.push([Math.max(a,b),'大きい方の数だけを 答えにした']);
+    if(a<10&&b<10)w.push([r+2,'数えまちがい（2 のずれ）']);
+  }
+  w.push([r+1,'数えまちがい・たし算の 1 のずれ'],[r-1,'数えまちがい・たし算の 1 のずれ']);
+  if(a!==b)w.push([Math.abs(a-b),'たし算なのに ひき算を してしまった']);
+  return w;
+}
+function subW(a,b){
+  const r=a-b,w=[],bp=borrowsSub(a,b);
+  if(a<20&&b<10&&a>10&&bp.length){
+    const u=a-10;
+    w.push([10*1+Math.abs(u-b),'ひけないので 小さい方から 大きい方を ひいてしまった']);
+    w.push([r+10,'10 から ひくのを わすれて、10 を そのまま のこした']);
+    w.push([u+b,'ひく数を たしてしまった']);
+  }else if(bp.length){
+    const k=bp[0]+1;
+    w.push([r+p10(k),'くり下がりで 上の位を 1 へらすのを わすれた']);
+    w.push([r-p10(k),'くり下げた 上の位を 2回 へらしてしまった']);
+    const da=digs(a),db=digs(b);let s='';for(let i=da.length-1;i>=0;i--)s+=Math.abs(da[i]-(db[i]||0));
+    w.push([+s,'ひけないとき、小さい方から 大きい方を ひいてしまった']);
+  }else{
+    if(a>=20){w.push([r-10,'くり下がりが ないのに 上の位を 1 へらしてしまった']);w.push([r+10,'ひき算の 位を まちがえた'])}
+    else{w.push([b,'ひく数を そのまま 答えにした']);w.push([a,'はじめの数を そのまま 答えにした'])}
+  }
+  w.push([r+1,'数えまちがい・ひき算の 1 のずれ'],[r-1,'数えまちがい・ひき算の 1 のずれ'],[a+b,'ひき算なのに たし算を してしまった']);
+  return w;
+}
+function mulW(a,b){
+  const r=a*b,w=[];
+  if(a<=9&&b<=9){
+    w.push([a*(b+1),'かける数が 1つ ちがう（となりの九九）'],[a*(b-1),'かける数が 1つ ちがう（となりの九九）'],[(a+1)*b,'となりの段の九九を つかった'],[(a-1)*b,'となりの段の九九を つかった'],[a+b,'かけ算なのに たし算を してしまった']);
+    if(r>=10){const s=String(r);w.push([+(s[1]+s[0]),'十の位と 一の位を ぎゃくに 書いた'])}
+    return w.filter(x=>x[0]>=1);
+  }
+  if(b<10){
+    const v=mulForget(a,b);
+    if(v!==r)w.push([v,'くり上がりの数を たすのを わすれた']);
+    const d=digs(a),idx=shuffle(range(0,d.length-1).filter(i=>d[i]>0));
+    idx.slice(0,2).forEach(i=>{w.push([r+d[i]*p10(i),POS[i]+'の かけ算の 九九を 1つ まちがえた']);w.push([r-d[i]*p10(i),POS[i]+'の かけ算の 九九を 1つ まちがえた'])});
+    const z=dropZero(r);if(z)w.push([z,'答えの 0 を 書きわすれた']);
+    w.push([a+b,'かけ算なのに たし算を してしまった']);
+    return w;
+  }
+  const b1=b%10,b2=Math.floor(b/10),p1=a*b1,p2=a*b2;
+  w.push([p1+p2,'2だん目の答えを 1けた ずらして 書かなかった']);
+  w.push([p1,'十の位の かけ算を わすれた']);
+  w.push([r+10,'2つの答えを たすとき くり上がりを まちがえた'],[r-10,'2つの答えを たすとき くり上がりを まちがえた']);
+  const v=mulForget(a,b1);if(v!==p1)w.push([r-(p1-v),'くり上がりの数を たすのを わすれた']);
+  const z=dropZero(r);if(z)w.push([z,'答えの 0 を 書きわすれた']);
+  w.push([p2*100+p1,'2だん目の答えの 一の位の 0 を 書きわすれて ならべた']);
+  return w;
+}
+function divExactW(a,d){
+  const q=a/d,w=[];
+  w.push([q+1,'商を 1 大きく たててしまった'],[q-1,'商を 1 小さく たててしまった']);
+  const z=dropZero(q);if(z)w.push([z,'商の 0 を 書きわすれた']);
+  else w.push([q*10,'商の 位を まちがえた（0 を つけすぎた）']);
+  if(q>=10)w.push([Math.floor(q/10),'商の 一の位を 書きわすれた']);
+  w.push([a-d,'わり算なのに ひき算を してしまった']);
+  w.push([d,'わる数を 答えにしてしまった']);
+  return w;
+}
+/* あまりありのわり算：文字の選択肢 */
+function divRemW(a,d){
+  const q=Math.floor(a/d),r=a%d,w=[];
+  const f=(x,y)=>`${x} あまり ${y}`;
+  if(q>=1)w.push([f(q-1,r+d),'あまりが わる数より 大きい（もう1回 われる）']);
+  w.push([f(r,q),'商と あまりを ぎゃくに 書いた']);
+  w.push([String(q),'あまりを 書きわすれた']);
+  w.push([f(q+1,r),'商を 1 大きく たててしまった']);
+  w.push([f(q,d-r),'あまりを「わる数 − あまり」にしてしまった']);
+  const z=dropZero(q);if(z)w.push([f(z,r),'商の 0 を 書きわすれた']);
+  if(r+1<d)w.push([f(q,r+1),'ひき算で あまりを 1 まちがえた']);
+  if(r-1>=1)w.push([f(q,r-1),'ひき算で あまりを 1 まちがえた']);
+  if(q-1>=1)w.push([f(q-1,r),'商を 1 小さく たててしまった']);
+  return w;
+}
+
+/* ---------- 解説（先生用） ---------- */
+function solAdd(a,b){
+  const da=digs(a),db=digs(b),n=Math.max(da.length,db.length);let c=0;const out=[];
+  for(let i=0;i<n;i++){
+    const x=da[i]||0,y=db[i]||0,s=x+y+c;
+    let t=`${POS[i]}：${x}＋${y}${c?'＋'+c:''}＝${s}`;
+    t+=(i===n-1)?` → ${s}を そのまま 書く`:(s>=10?` → ${s%10}を 書いて 1 くり上げる`:` → ${s}を 書く`);
+    c=s>=10?1:0;out.push(t);
+  }
+  return out.join('。')+`。答え ${a+b}`;
+}
+function solSub(a,b){
+  const da=digs(a),db=digs(b);let br=0;const out=[];
+  for(let i=0;i<da.length;i++){
+    const top=da[i]-br,y=db[i]||0;
+    if(i>=db.length&&!br){out.push(`${POS[i]}：${da[i]}を そのまま 書く`);continue}
+    if(top<y){out.push(`${POS[i]}：${top}から ${y} は ひけない → となりから 10 かりて ${top+10}−${y}＝${top+10-y}`);br=1}
+    else{out.push(`${POS[i]}：${br?da[i]+'−1＝'+top+'、':''}${top}−${y}＝${top-y}`);br=0}
+  }
+  return out.join('。')+`。答え ${a-b}`;
+}
+function solMul1(a,m){
+  const d=digs(a);let c=0;const out=[];
+  for(let i=0;i<d.length;i++){
+    const t=d[i]*m+c,up=Math.floor(t/10);
+    out.push(`${POS[i]}：${d[i]}×${m}${c?'＋'+c:''}＝${t}`+((i<d.length-1&&up>0)?` → ${t%10}を 書いて ${up}を くり上げる`:(i<d.length-1?` → ${t}を 書く`:` → ${t}を 書く`)));
+    c=up;
+  }
+  return out.join('。')+`。答え ${a*m}`;
+}
+function solMul(a,b){
+  if(b<10)return solMul1(a,b);
+  const b1=b%10,b2=Math.floor(b/10);
+  return `${a}×${b1}＝${a*b1}（1だん目）。${a}×${b2}＝${a*b2}、十の位なので 1けた ずらして ${a*b2*10}（2だん目）。${a*b1}＋${a*b2*10}＝${a*b}。答え ${a*b}`;
+}
+function solDiv(a,d){
+  const ds=String(a).split('').map(Number);let cur=0,started=false,qs='';const out=[];
+  for(let i=0;i<ds.length;i++){
+    cur=cur*10+ds[i];
+    if(cur<d){
+      if(started){qs+='0';out.push(`${cur}は ${d}より 小さいので 商に 0 を たてる`)}
+      else out.push(`${cur}は ${d}より 小さいので 次の位まで いっしょに 見る`);
+      continue;
+    }
+    const qd=Math.floor(cur/d);started=true;qs+=qd;
+    out.push(`${cur}÷${d} → ${qd}を たてる（${d}×${qd}＝${d*qd}、${cur}−${d*qd}＝${cur-d*qd}）`);
+    cur-=d*qd;
+  }
+  return out.join('。')+`。答え 商 ${+qs}`+(cur?` あまり ${cur}`:'');
+}
+
+/* ---------- 問題の組み立て ---------- */
+const nfill=r=>[r+1,r-1,r+2,r-2,r+10,r-10,r+3,r-3,r+5].map(v=>[v,'けいさんミス（数が ずれた）']);
+const okNum=(r,x)=>Number.isInteger(x[0])&&x[0]>=0&&x[0]!==r;
+function mk(o){
+  const right=String(o.right);
+  const pool=shuffle(uniq((o.wr||[]).map(x=>[String(x[0]),x[1]]).filter(x=>x[0]!==right),x=>x[0]));
+  const got=pool.slice(0,3);
+  if(got.length<3){
+    const have=new Set([right].concat(got.map(x=>x[0])));
+    for(const x of (o.fill||[])){if(got.length>=3)break;const t=String(x[0]);if(!have.has(t)){have.add(t);got.push([t,x[1]])}}
+  }
+  if(got.length<3)return null;
+  return {c:o.c,q:o.q,fig:o.fig||'',right,wr:got,sol:o.sol||'',key:o.key||o.q,m:o.m||{}};
+}
+function nmk(o,r,models){
+  o.right=r;
+  o.wr=models.filter(x=>okNum(r,x));
+  o.fill=nfill(r).filter(x=>okNum(r,x));
+  return mk(o);
+}
+const EX=s=>`<span class="ex">${s}</span>`;
+const OBJ=[{n:'あめ',u:'こ'},{n:'シール',u:'まい'},{n:'えんぴつ',u:'本'},{n:'ビー玉',u:'こ'},{n:'カード',u:'まい'},{n:'おはじき',u:'こ'},{n:'クッキー',u:'まい'},{n:'みかん',u:'こ'}];
+const NAMES=['ゆうきさん','はるかさん','そうたさん','みおさん','れんさん','あおいさん'];
+
+function solFact(it){
+  const {op,a,b}=it;
+  if(op==='+'){
+    if(a<=9&&b<=9&&a+b>10){const need=10-a,rest=b-need;return `${a}に あと ${need} で 10。${b}を ${need}と${rest}に 分けて、10＋${rest}＝${a+b}`}
+    if(a>=11&&b<10){const T=Math.ceil(a/10)*10;if(a%10&&a+b>T){const need=T-a,rest=b-need;return `${a}は ${T}まで あと ${need}。${b}を ${need}と${rest}に 分けて、${T}＋${rest}＝${a+b}`}}
+    if(a>=10||b>=10)return solAdd(a,b);
+    return `${a} ＋ ${b} ＝ ${a+b}`;
+  }
+  if(op==='-'){
+    if(a>10&&a<20&&b<10&&a-10<b)return `${a}を 10と${a-10}に 分けて、10−${b}＝${10-b}、${10-b}＋${a-10}＝${a-b}`;
+    if(a>=20||b>=10)return solSub(a,b);
+    return `${a} − ${b} ＝ ${a-b}`;
+  }
+  if(op==='*')return it.fig?solMul(a,b):`${a} × ${b} ＝ ${a*b}`;
+  if(it.rem){
+    const q=Math.floor(a/b),r=a%b;
+    return it.fig?solDiv(a,b):`${b}×${q}＝${b*q}、${a}−${b*q}＝${r}。 商 ${q} あまり ${r}`;
+  }
+  return it.fig?solDiv(a,b):`${b}×${a/b}＝${a} だから、${a} ÷ ${b} ＝ ${a/b}`;
+}
+const resOf=it=>it.op==='+'?it.a+it.b:it.op==='-'?it.a-it.b:it.op==='*'?it.a*it.b:Math.floor(it.a/it.b);
+function numModels(it){
+  const {op,a,b}=it;
+  if(op==='+')return addW(a,b);
+  if(op==='-')return subW(a,b);
+  if(op==='*')return mulW(a,b);
+  return divExactW(a,b);
+}
+
+/* 形式ごとの問題づくり */
+function bD(it,u,cat){
+  const {op,a,b}=it,figOn=!!u.fig;
+  const m={f:'D',op,a,b,rem:!!it.rem,T:it.T||0};
+  if(it.comp){
+    const T=it.T;
+    return nmk({c:cat,q:EX(`${a} ＋ □ ＝ ${T}`),sol:`${T} − ${a} ＝ ${b}`,m:Object.assign({},m,{f:'MRc'})},b,[[a,'もとの数を そのまま 答えにした'],[T,'ぜんぶの数を 答えにした'],[T+a,'たし算を してしまった'],[b+1,'数えまちがい（1 のずれ）'],[b-1,'数えまちがい（1 のずれ）']]);
+  }
+  const sym=OPS[op];
+  if(op==='/'&&it.rem){
+    const o=mk({c:cat,q:figOn?`<div class="lead">ひっ算で 計算します。商と あまりは？</div>`+EX(`${a} ÷ ${b}`):EX(`${a} ÷ ${b}`)+`<div class="lead">商と あまりは？</div>`,fig:figOn?dfig(a,b):'',right:`${Math.floor(a/b)} あまり ${a%b}`,wr:divRemW(a,b),fill:[],sol:solFact(it),m});
+    return o;
+  }
+  const stem=figOn?`<div class="lead">ひっ算で 計算します。答えは？</div>`+EX(`${a} ${sym} ${b}`):EX(`${a} ${sym} ${b} ＝ ？`);
+  const fig=figOn?(op==='/'?dfig(a,b):vfig(a,b,sym)):'';
+  return nmk({c:cat,q:stem,fig,sol:solFact(it),m},resOf(it),numModels(it));
+}
+function bML(it,u){
+  const {op,a,b}=it;if(it.rem)return null;
+  const c=resOf(it),sym=OPS[op];
+  const stem=EX(`□ ${sym} ${b} ＝ ${c}`);
+  const m={f:'ML',op,a,b};
+  let models,sol;
+  if(op==='+'){models=[[c+b,'□を たし算で もとめてしまった（ひき算で もとめる）'],[c,'答えの数を そのまま 書いた'],[b,'わかっている数を 書いた'],[a+1,'1 のずれ'],[a-1,'1 のずれ']];sol=`□ ＝ ${c} − ${b} ＝ ${a}`}
+  else if(op==='-'){models=[[c-b,'□を ひき算で もとめてしまった（たし算で もとめる）'],[c,'答えの数を そのまま 書いた'],[b,'わかっている数を 書いた'],[a+1,'1 のずれ'],[a-1,'1 のずれ']];sol=`□ ＝ ${c} ＋ ${b} ＝ ${a}`}
+  else if(op==='*'){models=[[c-b,'□を ひき算で もとめてしまった'],[c+b,'□を たし算で もとめてしまった'],[c*b,'わり算ではなく かけ算を してしまった'],[b,'わかっている数を 書いた'],[a+1,'九九の 1 のずれ'],[a-1,'九九の 1 のずれ']];sol=`□ ＝ ${c} ÷ ${b} ＝ ${a}`}
+  else{models=[[c+b,'□を たし算で もとめてしまった'],[c-b,'□を ひき算で もとめてしまった'],[c,'答えの数を そのまま 書いた'],[b,'わかっている数を 書いた'],[a+1,'九九の 1 のずれ'],[a-1,'九九の 1 のずれ']];sol=`□ ＝ ${c} × ${b} ＝ ${a}`}
+  return nmk({c:'□を もとめる',q:stem,sol,m},a,models);
+}
+function bMR(it,u){
+  const {op,a,b}=it;if(it.rem)return null;
+  const c=resOf(it),sym=OPS[op];
+  const m={f:'MR',op,a,b};
+  let models,sol,stem;
+  if(u.flip&&op==='+'&&rnd(2)===0)stem=EX(`${c} ＝ ${a} ＋ □`);else stem=EX(`${a} ${sym} □ ＝ ${c}`);
+  if(op==='+'){models=[[c+a,'□を たし算で もとめてしまった（ひき算で もとめる）'],[c,'答えの数を そのまま 書いた'],[a,'わかっている数を 書いた'],[b+1,'1 のずれ'],[b-1,'1 のずれ']];sol=`□ ＝ ${c} − ${a} ＝ ${b}`}
+  else if(op==='-'){models=[[a+c,'□を たし算で もとめてしまった'],[c,'答えの数を そのまま 書いた'],[a,'わかっている数を 書いた'],[b+1,'1 のずれ'],[b-1,'1 のずれ']];sol=`□ ＝ ${a} − ${c} ＝ ${b}`}
+  else if(op==='*'){models=[[c-a,'□を ひき算で もとめてしまった'],[c+a,'□を たし算で もとめてしまった'],[c*a,'わり算ではなく かけ算を してしまった'],[a,'わかっている数を 書いた'],[b+1,'九九の 1 のずれ'],[b-1,'九九の 1 のずれ']];sol=`□ ＝ ${c} ÷ ${a} ＝ ${b}`}
+  else{models=[[a*c,'わり算ではなく かけ算を してしまった'],[a-c,'□を ひき算で もとめてしまった'],[c,'答えの数を そのまま 書いた'],[a,'わかっている数を 書いた'],[b+1,'九九の 1 のずれ'],[b-1,'九九の 1 のずれ']];sol=`□ ＝ ${a} ÷ ${c} ＝ ${b}`}
+  return nmk({c:'□を もとめる',q:stem,sol,m},b,models);
+}
+function bSUBD(it,u){
+  if(!it.comp)return null;
+  const T=it.T,a=it.a,b=it.b;
+  return nmk({c:'ひき算で もとめる',q:EX(`${T} − ${a} ＝ □`),sol:`${T} − ${a} ＝ ${b}`,m:{f:'SUBD',a:T,b:a}},b,subW(T,a));
+}
+function bW(it,u){
+  const {op,a,b}=it,ob=pick(OBJ),nm=pick(NAMES),m={f:'W',op,a,b,rem:!!it.rem,T:it.T||0};
+  let t;
+  if(it.comp){
+    const T=it.T;
+    t=`${ob.n}が ${a}${ob.u} あります。ちょうど ${T}${ob.u}に するには、あと なん${ob.u} 必要ですか。`;
+    return nmk({c:'文章題',q:`<div class="wp">${t}</div>`,sol:`しき ${T} − ${a} ＝ ${b}`,m:Object.assign({},m,{f:'Wc'})},b,[[a,'もとの数を そのまま 答えにした'],[T,'ぜんぶの数を 答えにした'],[T+a,'たし算を してしまった'],[b+1,'1 のずれ'],[b-1,'1 のずれ']]);
+  }
+  if(op==='+')t=`${nm}は ${ob.n}を ${a}${ob.u} もっています。あとから ${b}${ob.u} もらいました。ぜんぶで なん${ob.u}に なりましたか。`;
+  else if(op==='-')t=`${nm}は ${ob.n}を ${a}${ob.u} もっていました。${b}${ob.u} つかいました。のこりは なん${ob.u}ですか。`;
+  else if(op==='*')t=`1人に ${ob.n}を ${a}${ob.u}ずつ くばります。${b}人に くばると、ぜんぶで なん${ob.u} いりますか。`;
+  else if(it.rem)t=`${ob.n}が ${a}${ob.u} あります。${b}人で 同じ数ずつ 分けます。1人 なん${ob.u}で、なん${ob.u} あまりますか。`;
+  else t=`${ob.n}が ${a}${ob.u} あります。${b}人で 同じ数ずつ 分けます。1人 なん${ob.u}ですか。`;
+  const stem=`<div class="wp">${t}</div>`;
+  const sol='しき '+`${a} ${OPS[op]} ${b}`+(it.rem?` ＝ ${Math.floor(a/b)} あまり ${a%b}`:` ＝ ${resOf(it)}`)+(it.fig||a>=10||b>=10?'　（計算：'+solFact(Object.assign({},it,{fig:true}))+'）':'');
+  if(op==='/'&&it.rem)return mk({c:'文章題',q:stem,right:`${Math.floor(a/b)} あまり ${a%b}`,wr:divRemW(a,b),fill:[],sol,m});
+  return nmk({c:'文章題',q:stem,sol,m},resOf(it),numModels(it));
+}
+function bPE(it,u){
+  const {op,a,b}=it;if(it.rem)return null;
+  const c=it.comp?it.T:resOf(it),sym=OPS[op];
+  const val=(x,y,o)=>o==='+'?x+y:o==='-'?x-y:o==='*'?x*y:(y>0&&x%y===0?x/y:null);
+  const cand=[[a+1,b,op],[a-1,b,op],[a,b+1,op],[a,b-1,op]];
+  if(op==='-'||op==='/')cand.push([b,a,op]);
+  ['+','-','*','/'].forEach(o=>{if(o!==op)cand.push([a,b,o])});
+  if(it.comp){cand.push([a+1,b+1,op],[a-1,b-1,op],[a,b+2,op],[a+2,b,op])}
+  const wr=[];
+  cand.forEach(([x,y,o])=>{
+    if(x<1||y<1)return;const v=val(x,y,o);if(v===null||v===c||v<0)return;
+    wr.push([`${x} ${OPS[o]} ${y}`,`この式の 答えは ${v} になる`]);
+  });
+  const stem=`<div class="lead">答えが <b>${c}</b> に なる 式は どれですか。</div>`;
+  const stemC=it.comp?`<div class="lead">ぜんぶで <b>${c}</b> に なる たし算の 式は どれですか。</div>`:stem;
+  const right=`${a} ${sym} ${b}`;
+  if(it.comp)wr.forEach(x=>{x[1]=x[1].replace('答えは','答えは')});
+  return mk({c:'式を えらぶ',q:stemC,right,wr,fill:[],sol:`${right} ＝ ${c}。 ほかの式の答えは、`+uniq(wr,x=>x[0]).slice(0,3).map(x=>x[0]+' → '+x[1].replace(/^この式の 答えは /,'').replace(' になる','')).join('、')+' など。',m:{f:'PE',op,a,b,c}});
+}
+function bHC(it,u){
+  const {op,a,b}=it;
+  let n,word,sol;
+  if(op==='+'){n=carriesAdd(a,b).length;word='くり上がり';sol=solAdd(a,b)}
+  else if(op==='-'){n=borrowsSub(a,b).length;word='くり下がり';sol=solSub(a,b)}
+  else if(op==='*'&&b<10){n=carriesMul1(a,b);word='くり上がり';sol=solMul1(a,b)}
+  else return null;
+  const stem=EX(`${a} ${OPS[op]} ${b}`)+`<div class="lead">ひっ算で 計算するとき、${word}は 全部で なん回 ありますか。</div>`;
+  const wr=[0,1,2,3].filter(x=>x!==n).map(x=>[x,x<n?`${word}を 数え落とした`:`${word}が ない位でも 数えてしまった`]);
+  return mk({c:word+'の 回数',q:stem,right:n,wr,fill:[],sol:`${sol}。${word}は ${n}回`,m:{f:'HC',op,a,b,n}});
+}
+function bHD(it,u){
+  const {op,a,b}=it;if(it.rem||op==='/')return null;
+  const r=resOf(it);if(r<100)return null;
+  const p=1+rnd(Math.min(2,String(r).length-1));
+  const dig=Math.floor(r/p10(p))%10;
+  const wr=[];
+  numModels(it).forEach(x=>{const v=x[0];if(v<0)return;const d=Math.floor(v/p10(p))%10;if(d!==dig)wr.push([d,x[1]])});
+  const fill=[(dig+1)%10,(dig+9)%10,(dig+2)%10,(dig+8)%10,Math.floor(r/p10(p-1))%10].map(d=>[d,'位を まちがえた・数のずれ']).filter(x=>x[0]!==dig);
+  return mk({c:'答えの 位の数字',q:EX(`${a} ${OPS[op]} ${b}`)+`<div class="lead">ひっ算の 答えの <b>${POS[p]}</b> の 数字は なんですか。</div>`,right:dig,wr,fill,sol:`${solFact(Object.assign({},it,{fig:true}))}。 答え ${r} の ${POS[p]}は ${dig}`,m:{f:'HD',op,a,b,p}});
+}
+function bPP(it,u){
+  const {op,a,b}=it;if(op!=='*'||b<10)return null;
+  const b1=b%10,b2=Math.floor(b/10),p1=a*b1,p2=a*b2;
+  return mk({c:'2だん目の かけ算',q:EX(`${a} × ${b}`)+`<div class="lead">ひっ算の 2だん目には、${a}×${b2} の答えを 1けた ずらして 書きます。2だん目に 書く数は どれですか。</div>`,right:p2*10,wr:[[p2,'1けた ずらさずに 書いた'],[p1,'1だん目の 答えを 書いた'],[p2*100,'ずらしすぎた'],[a*(b2+1)*10,'九九・かけ算の まちがい'],[a*(b2-1)*10,'九九・かけ算の まちがい']],fill:[[p2*10+10,'かけ算の まちがい'],[p2*10-10,'かけ算の まちがい']],sol:`2だん目は ${a}×${b2}＝${p2} を 1けた ずらして ${p2*10}`,m:{f:'PP',a,b}});
+}
+function bCHK(it,u){
+  const {op,a,b}=it;if(op!=='/')return null;
+  const q=Math.floor(a/b),r=a%b;
+  const lhs=[];let right,wr;
+  if(!r){
+    right=`${b} × ${q} ＝ ${a}`;
+    wr=[[`${q} ＋ ${b} ＝ ${a}`,'わり算の たしかめを たし算で した',q+b],[`${a} × ${q} ＝ ${b}`,'わられる数と 商を とりちがえた',a*q],[`${a} − ${b} ＝ ${q}`,'ひき算で たしかめた',a-b],[`${q} × ${a} ＝ ${b}`,'式の 順番を とりちがえた',q*a],[`${b} ＋ ${q} ＝ ${a}`,'たし算で たしかめた',b+q]].filter(x=>x[2]!==a).map(x=>[x[0],x[1]]);
+    return mk({c:'たしかめ算',q:EX(`${a} ÷ ${b} ＝ ${q}`)+`<div class="lead">この わり算の たしかめ算の 式は どれですか。</div>`,right,wr,fill:[],sol:`わる数 × 商 ＝ わられる数。 ${b}×${q}＝${a}`,m:{f:'CHK',a,b}});
+  }
+  right=`${b} × ${q} ＋ ${r} ＝ ${a}`;
+  wr=[[`${b} × ${q} ＝ ${a}`,'あまりを たすのを わすれた',b*q],[`${b} × ${r} ＋ ${q} ＝ ${a}`,'商と あまりを とりちがえた',b*r+q],[`${b} × ${q} − ${r} ＝ ${a}`,'あまりを ひいてしまった',b*q-r],[`${q} × ${r} ＋ ${b} ＝ ${a}`,'わる数と あまりを とりちがえた',q*r+b],[`${b} ＋ ${q} ＋ ${r} ＝ ${a}`,'ぜんぶ たしてしまった',b+q+r]].filter(x=>x[2]!==a).map(x=>[x[0],x[1]]);
+  return mk({c:'たしかめ算',q:EX(`${a} ÷ ${b} ＝ ${q} あまり ${r}`)+`<div class="lead">この わり算の たしかめ算の 式は どれですか。</div>`,right,wr,fill:[],sol:`わる数 × 商 ＋ あまり ＝ わられる数。 ${b}×${q}＋${r}＝${a}`,m:{f:'CHK',a,b}});
+}
+function bQD(it,u){
+  const {op,a,b}=it;if(op!=='/')return null;
+  const q=Math.floor(a/b),n=String(q).length;
+  const wr=[1,2,3,4].filter(x=>x!==n).map(x=>[x,x>n?'商が たつ位置を 高く 考えた':'商が たつ位置を 低く 考えた']);
+  return mk({c:'商の けた数',q:EX(`${a} ÷ ${b}`)+`<div class="lead">この わり算の 商は なんけたの 数に なりますか。</div>`,right:n,wr,fill:[],sol:`${solDiv(a,b)}。 商 ${q} は ${n}けた`,m:{f:'QD',a,b}});
+}
+function bREM(it,u){
+  const {op,a,b}=it;if(op!=='/'||!it.rem||b<4)return null;
+  const right=b+rnd(3);
+  const vals=shuffle(range(1,b-1)).slice(0,3);
+  return mk({c:'あまりの 大きさ',q:`<div class="lead">${b} で わり算をするとき、<b>あまりに ならない</b> 数は どれですか。</div>`,right,wr:vals.map(v=>[v,`${v} は ${b} より 小さいので あまりに なれる`]),fill:[],sol:`あまりは わる数 ${b} より 小さくなります。${right} は ${b}以上 なので あまりに なれません`,m:{f:'REM',b}});
+}
+const BUILD={D:bD,ML:bML,MR:bMR,SUBD:bSUBD,W:bW,PE:bPE,HC:bHC,HD:bHD,PP:bPP,CHK:bCHK,QD:bQD,REM:bREM};
+const FMT_CAT={ML:'□を もとめる',MR:'□を もとめる',SUBD:'ひき算で もとめる',W:'文章題',PE:'式を えらぶ',HD:'答えの 位の数字',PP:'2だん目の かけ算',CHK:'たしかめ算',QD:'商の けた数',REM:'あまりの 大きさ'};
+
+/* ---------- 単元 → 3回分の問題 ---------- */
+const SETNAMES=['第1回　基本','第2回　標準','第3回　応用'];
+function buildOne(fmt,it,u){
+  if(fmt==='D'||fmt==='INV'){
+    let t=it;
+    if(fmt==='INV'){if(it.op!=='*')return null;t={op:'/',a:it.a*it.b,b:it.a,fig:false};return bD(t,u,'わり算（九九の ぎゃく）')}
+    return bD(it,u,it.comp?'あと いくつ':(u.cls?u.cls(it):'けいさん'));
+  }
+  const f=BUILD[fmt];return f?f(it,u):null;
+}
+function genSet(u,lv,used){
+  seedStr(u.id+':'+lv);
+  const plan=u.plan[lv],items=u.items(lv),out=[],local=new Set();
+  const fallbackChain=['D','MR','ML','W','SUBD','PE'];
+  const tryFill=(fmt,n,filt,pool,relax)=>{
+    let got=0,bag=shuffle(pool.filter(it=>!filt||(u.cls&&u.cls(it)===filt)||it.tag===filt)),tries=0;
+    const lim=bag.length*3+30;
+    while(got<n&&tries<lim){
+      tries++;
+      if(!bag.length)break;
+      const it=bag.pop(),sp=buildOne(fmt,it,u);
+      if(!sp)continue;
+      if(local.has(sp.key))continue;
+      if(!relax&&used.has(sp.key))continue;
+      local.add(sp.key);used.add(sp.key);out.push(sp);got++;
+    }
+    return got;
+  };
+  const dtaken=[];
+  plan.forEach(([fmt,n,filt])=>{
+    let got=tryFill(fmt,n,filt,items,false);
+    if(got<n)got+=tryFill(fmt,n-got,filt,items,true);
+    if(got<n){
+      for(const fb of fallbackChain){
+        if(got>=n)break;
+        if(fb===fmt)continue;
+        got+=tryFill(fb,n-got,null,items,false);
+      }
+    }
+    if(got<n)got+=tryFill('D',n-got,null,items,true);
+  });
+  return out.slice(0,10);
+}
+function finalize(list,seedKey){
+  seedStr('pos:'+seedKey);
+  const base=[0,0,1,1,2,2,3,3].concat(shuffle([0,1,2,3]).slice(0,2));
+  const tg=shuffle(base);
+  return list.map((s,i)=>{
+    const pos=tg[i],wr=shuffle(s.wr);
+    const ch=[],w={};let k=0;
+    for(let j=0;j<4;j++){
+      if(j===pos)ch.push(s.right);
+      else{ch.push(wr[k][0]);w[j]=wr[k][1];k++}
+    }
+    return {c:s.c,q:s.q,fig:s.fig,ch,a:pos,w,sol:s.sol,m:s.m};
+  });
+}
+const _cache={};
+function unitSets(u){
+  if(_cache[u.id])return _cache[u.id];
+  const used=new Set(),res=[];
+  for(let lv=1;lv<=3;lv++){
+    const raw=genSet(u,lv,used);
+    const qs=finalize(raw,u.id+':'+lv);
+    const cats=[];qs.forEach(q=>{if(cats.indexOf(q.c)<0)cats.push(q.c)});
+    res.push({lv,name:SETNAMES[lv-1],qs,cats});
+  }
+  return _cache[u.id]=res;
+}
+
+/* 単元の問題の作り方のための共通部品 */
+const IT=(op,a,b,x)=>Object.assign({op,a,b},x||{});
+const ease=it=>it.op==='+'?it.a+it.b:it.op==='-'?it.a:it.op==='*'?it.a*it.b:it.a;
+/* 基本・標準・応用で、やさしい順に 使う範囲を変える */
+function tiered(pool){
+  const s=pool.slice().sort((x,y)=>ease(x)-ease(y)),n=s.length;
+  if(n<8)return lv=>s;
+  const k=Math.ceil(n*0.6);
+  return lv=>lv===1?s.slice(0,k):lv===3?s.slice(n-k):s;
+}
+
+/* ---------- 九九と筆算の道場：単元テスト（4択・3回） ---------- */
+const Uk=(id,g,no,short,title,desc,o)=>Object.assign({id,g,no,short,title,desc,fig:false},o);
+const PLAN_K={1:[['D',7],['MR',3]],2:[['D',4],['MR',2],['ML',2],['W',2]],3:[['W',3],['INV',3],['PE',2],['ML',2]]};
+const kukuPairs=(as,bs)=>{const r=[];as.forEach(a=>bs.forEach(b=>r.push(IT('*',a,b))));return r};
+const MC0='くり上がりなし',MC1='くり上がり1回',MC2='くり上がり2回以上';
+const clsMul1=it=>{const n=carriesMul1(it.a,it.b);return n===0?MC0:(n===1?MC1:MC2)};
+const ML_='くり上がり少なめ',MM_='くり上がりふつう',MH_='くり上がり多め';
+const mulTot=it=>carriesMul1(it.a,it.b%10)+carriesMul1(it.a,Math.floor(it.b/10));
+const clsMul2=lim=>it=>{const n=mulTot(it);return n<=lim[0]?ML_:(n<=lim[1]?MM_:MH_)};
+function mPool(len,two){
+  const out=[];
+  for(let i=0;i<500;i++){
+    const a=len===2?11+rnd(89):101+rnd(899),b=two?11+rnd(89):2+rnd(8);
+    if(a%10===0||(two&&b%10===0))continue;
+    out.push(IT('*',a,b,{fig:true}));
+  }
+  return out;
+}
+const DZ0='商に 0 が入らない',DZ1='商に 0 が入る';
+const clsDiv=it=>String(Math.floor(it.a/it.b)).indexOf('0')>=0?DZ1:DZ0;
+const DCFG={'21':{d:[2,9],Q:[10,49],a:[10,99]},'31':{d:[2,9],Q:[12,499],a:[100,999]},'22':{d:[11,49],Q:[2,9],a:[10,99]},'32':{d:[11,49],Q:[5,89],a:[100,999]}};
+function dPool(kind,rem){
+  const c=DCFG[kind],out=[];
+  for(let d=c.d[0];d<=c.d[1];d++){
+    if(d>=10&&d%10===0)continue;
+    for(let q=c.Q[0];q<=c.Q[1];q++){
+      const r=rem?1+rnd(d-1):0,a=d*q+r;
+      if(a<c.a[0]||a>c.a[1])continue;
+      out.push(IT('/',a,d,{fig:true,rem:!!rem}));
+    }
+  }
+  return out;
+}
+/* ひっ算プラン */
+const planMul1=(n0,n1,n2)=>({
+  1:[['D',5,n0],['D',3,n1],['D',2,n1]],
+  2:[['D',3,n0],['D',3,n1],['D',4,n2]],
+  3:[['D',2,n2],['W',2],['HC',2],['PE',1],['HD',2],['MR',1]]
+});
+const planMul2=(l,m,h)=>({
+  1:[['D',5,l],['D',3,m],['D',2,m]],
+  2:[['D',3,l],['D',3,m],['D',4,h]],
+  3:[['D',2,h],['PP',2],['W',2],['PE',1],['HD',2],['MR',1]]
+});
+const planDiv=(z)=>z?{
+  1:[['D',8,DZ0],['D',1,DZ1],['CHK',1]],
+  2:[['D',6,DZ0],['D',4,DZ1]],
+  3:[['D',2,DZ1],['W',2],['CHK',2],['QD',2],['PE',1],['MR',1]]
+}:{
+  1:[['D',8],['CHK',2]],
+  2:[['D',6],['W',2],['CHK',2]],
+  3:[['D',3],['W',2],['CHK',2],['QD',2],['PE',1]]
+};
+const planRem=(z)=>z?{
+  1:[['D',8,DZ0],['D',1,DZ1],['CHK',1]],
+  2:[['D',6,DZ0],['D',4,DZ1]],
+  3:[['D',2,DZ1],['W',2],['CHK',2],['QD',2],['REM',2]]
+}:{
+  1:[['D',8],['CHK',2]],
+  2:[['D',6],['W',2],['CHK',2]],
+  3:[['D',2],['W',2],['CHK',2],['QD',2],['REM',2]]
+};
+
+const CFG={
+  key:'kogen-kuku-test4-v1',navKey:'kogen-kuku-test4-nav',
+  prog:'kuku',
+  title:'九九と筆算の道場　単元テスト',
+  lead:'「九九と筆算の道場」の各単元の力をためす4択テストです。1つの単元に「基本・標準・応用」の3回、各10問。8問以上で合格です。',
+  practiceUrl:'kuku.html',practiceName:'九九と筆算の道場（れんしゅう）',
+  otherUrl:'matomari-test.html',otherName:'5と10のまとまり　単元テスト',
+  indexUrl:'sansu-index.html',
+  groups:['九九','かけ算のひっ算','わり算（あまりなし）','わり算（あまりあり）'],
+  units:[
+    ...range(1,9).map(n=>Uk('d'+n,0,String(n),n+'の段',n+'の段のテスト',`${n}の段の九九の力をためします。`,{items:tiered(kukuPairs([n],range(1,9)).concat(kukuPairs(range(1,9),[n]).filter(it=>it.a!==n))),plan:PLAN_K})),
+    Uk('dall',0,'ミ','九九ミックス','九九ミックス','1〜9の段のいろいろな九九の力をためします。',{items:tiered(kukuPairs(range(2,9),range(2,9))),plan:PLAN_K}),
+    Uk('x21',1,'①','2桁×1桁','2桁×1桁のひっ算','ひっ算でかけ算をします。',{paper:true,fig:true,cls:clsMul1,items:()=>mPool(2,false).filter(it=>it.b>=2),plan:{1:[['D',6,MC0],['D',4,MC1]],2:[['D',4,MC0],['D',6,MC1]],3:[['D',3,MC1],['W',2],['HC',2],['PE',1],['MR',2]]}}),
+    Uk('x22',1,'②','2桁×2桁','2桁×2桁のひっ算','ひっ算でかけ算をします。',{paper:true,fig:true,cls:clsMul2([0,1]),items:()=>mPool(2,true),plan:planMul2(ML_,MM_,MH_)}),
+    Uk('x31',1,'③','3桁×1桁','3桁×1桁のひっ算','ひっ算でかけ算をします。',{paper:true,fig:true,cls:clsMul1,items:()=>mPool(3,false),plan:planMul1(MC0,MC1,MC2)}),
+    Uk('x32',1,'④','3桁×2桁','3桁×2桁のひっ算','ひっ算でかけ算をします。',{paper:true,fig:true,cls:clsMul2([1,3]),items:()=>mPool(3,true),plan:planMul2(ML_,MM_,MH_)}),
+    Uk('v0',2,'①','九九の範囲','わり算（九九の範囲・あまりなし）','九九を使って、わり算の答え（商）を考えます。',{items:tiered(range(2,9).reduce((r,d)=>r.concat(range(2,9).map(q=>IT('/',d*q,d))),[])),plan:{1:[['D',7],['MR',3]],2:[['D',4],['MR',2],['ML',2],['W',2]],3:[['W',3],['CHK',3],['PE',2],['ML',2]]}}),
+    Uk('v21',2,'②','2桁÷1桁','2桁÷1桁のわり算のひっ算','【あまりなし】筆算（たてる → かける → ひく → おろす）で計算します。',{paper:true,fig:true,cls:clsDiv,items:()=>dPool('21',false),plan:planDiv(true)}),
+    Uk('v31',2,'③','3桁÷1桁','3桁÷1桁のわり算のひっ算','【あまりなし】筆算で計算します。',{paper:true,fig:true,cls:clsDiv,items:()=>dPool('31',false),plan:planDiv(true)}),
+    Uk('v22',2,'④','2桁÷2桁','2桁÷2桁のわり算のひっ算','【あまりなし】筆算で計算します。',{paper:true,fig:true,items:()=>dPool('22',false),plan:planDiv(false)}),
+    Uk('v32',2,'⑤','3桁÷2桁','3桁÷2桁のわり算のひっ算','【あまりなし】筆算で計算します。',{paper:true,fig:true,cls:clsDiv,items:()=>dPool('32',false),plan:planDiv(true)}),
+    Uk('r0',3,'①','九九の範囲','わり算（九九の範囲・あまりあり）','「商」と「あまり」の両方を考えます。',{items:tiered((()=>{const r=[];for(let d=2;d<=9;d++)for(let q=1;q<=9;q++)for(let rr=1;rr<d;rr++)r.push(IT('/',d*q+rr,d,{rem:true}));return r})()),plan:{1:[['D',8],['REM',2]],2:[['D',5],['W',3],['CHK',2]],3:[['W',3],['CHK',3],['REM',2],['D',2]]}}),
+    Uk('r21',3,'②','2桁÷1桁','2桁÷1桁のわり算のひっ算','【あまりあり】筆算で計算します。商とあまりを考えます。',{paper:true,fig:true,cls:clsDiv,items:()=>dPool('21',true),plan:planRem(true)}),
+    Uk('r31',3,'③','3桁÷1桁','3桁÷1桁のわり算のひっ算','【あまりあり】筆算で計算します。商とあまりを考えます。',{paper:true,fig:true,cls:clsDiv,items:()=>dPool('31',true),plan:planRem(true)}),
+    Uk('r22',3,'④','2桁÷2桁','2桁÷2桁のわり算のひっ算','【あまりあり】筆算で計算します。商とあまりを考えます。',{paper:true,fig:true,items:()=>dPool('22',true),plan:planRem(false)}),
+    Uk('r32',3,'⑤','3桁÷2桁','3桁÷2桁のわり算のひっ算','【あまりあり】筆算で計算します。商とあまりを考えます。',{paper:true,fig:true,cls:clsDiv,items:()=>dPool('32',true),plan:planRem(true)})
+  ]
+};
+
+/* ---------- 画面（4択テスト・採点・印刷・講師用） ---------- */
+const $=(s,r)=>(r||document).querySelector(s);
+const PASSQ=8,CLOSEQ=6,NQ=10;
+const TEACHER_WORD='kogen';
+const SET_LABEL=['基本','標準','応用'];
+const SET_DESC=['まずは基本の計算で、そのままの形で力をたしかめます。','□をもとめる問題など、いろいろな形に慣れます。','文章題・式をえらぶ問題など、考え方もためします。'];
+const SET_DESC_H=['やさしい計算を中心に、手順をたしかめます。','くり上がり・くり下がりなどを、ふつうに混ぜて練習します。','むずかしい計算と、手順を考える問題（回数・位・たしかめ算など）です。'];
+const KATA_=['ア','イ','ウ','エ'];
+
+/* 記録（この端末のブラウザだけ） */
+let mem=null;
+function db(){
+  if(mem)return mem;
+  try{mem=JSON.parse(localStorage.getItem(CFG.key)||'{}')||{}}catch(e){mem={}}
+  mem.units=mem.units||{};
+  return mem;
+}
+function save(){try{localStorage.setItem(CFG.key,JSON.stringify(mem||{}))}catch(e){}}
+const rec=(id,si)=>{const d=db().units;d[id]=d[id]||{};d[id][si]=d[id][si]||{sc:[],feel:''};return d[id][si]};
+const recOf=(id,si)=>((db().units[id]||{})[si])||{sc:[],feel:''};
+const bestOf=(id,si)=>{const a=recOf(id,si).sc;return a.length?Math.max.apply(null,a):-1};
+const lastOf=(id,si)=>{const a=recOf(id,si).sc;return a.length?a[a.length-1]:-1};
+const setPassed=(id,si)=>bestOf(id,si)>=PASSQ;
+const unitDone=id=>[0,1,2].every(si=>setPassed(id,si));
+
+let teacher=false;
+try{teacher=sessionStorage.getItem('kogen-teacher')==='1'}catch(e){}
+let S={unit:CFG.units[0],mode:'intro',si:0},T=null;
+
+function petals(){
+  if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  var c=document.createElement('canvas');
+  c.setAttribute('aria-hidden','true');c.id='petals';
+  c.style.cssText='position:fixed;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:50';
+  var dpr=window.devicePixelRatio||1,W=window.innerWidth,H=window.innerHeight;
+  c.width=W*dpr;c.height=H*dpr;document.body.appendChild(c);
+  var x=c.getContext('2d');if(!x){c.remove();return}x.scale(dpr,dpr);
+  var cols=['#ffb7c5','#ff9db4','#ffc8d6','#f7a1bd','#ffe1e9'],ps=[],i;
+  for(i=0;i<90;i++)ps.push({x:Math.random()*W*0.9-W*0.1,y:-30-Math.random()*H*0.6,s:7+Math.random()*9,vy:1.6+Math.random()*2.4,vx:1+Math.random()*2.6,ph:Math.random()*6.28,sw:.04+Math.random()*.05,rot:Math.random()*6.28,vr:(Math.random()-.5)*.12,col:cols[i%cols.length]});
+  var t0=null;
+  function frame(ts){
+    if(t0===null)t0=ts;
+    x.clearRect(0,0,W,H);
+    var alive=0;
+    ps.forEach(function(p){
+      p.x+=p.vx+Math.sin(p.ph)*1.2;p.y+=p.vy;p.ph+=p.sw*3;p.rot+=p.vr;
+      if(p.y<H+30&&p.x<W+40)alive++;
+      x.save();x.translate(p.x,p.y);x.rotate(p.rot);x.scale(1,Math.cos(p.ph)*.8+.2);
+      x.fillStyle=p.col;x.beginPath();
+      x.moveTo(0,-p.s);x.bezierCurveTo(p.s,-p.s*.6,p.s*.8,p.s*.7,0,p.s);
+      x.bezierCurveTo(-p.s*.8,p.s*.7,-p.s,-p.s*.6,0,-p.s);x.fill();
+      x.restore();
+    });
+    if(alive>0&&ts-t0<4500)requestAnimationFrame(frame);
+    else if(c.parentNode)c.parentNode.removeChild(c);
+  }
+  requestAnimationFrame(frame);
+}
+
+/* ---------- 紙面（印刷・保存・講師用PDF） ---------- */
+const PCSS=`
+.paper{--ink:#111;--surface:#fff;--line:#bbb;--boxline:#111;--muted:#555;--orange:#c55a00;--good:#12804d;--font-num:"Zen Maru Gothic","BIZ UDPGothic","Hiragino Maru Gothic ProN","Meiryo","Noto Sans CJK JP",sans-serif;font-family:"BIZ UDPGothic","Hiragino Sans","Yu Gothic UI","Meiryo","Noto Sans CJK JP",sans-serif;background:#fff;color:#111;font-size:14px;line-height:1.6}
+.paper *{box-sizing:border-box}
+.paper .sheet{max-width:780px;margin:0 auto;padding:18px 22px 26px}
+.paper .sheet.brk{page-break-before:always;break-before:page}
+.paper h1{font-size:19px;margin:0 0 2px}
+.paper .sub{font-size:12px;color:#555;margin:0 0 6px}
+.paper .nameline{display:flex;flex-wrap:wrap;gap:6px 24px;font-size:14px;border-bottom:2px solid #111;padding:6px 0 8px;margin-bottom:10px}
+.paper .tbanner{background:#fff3e0;border:2px solid #c55a00;color:#7a3a00;font-weight:700;padding:5px 10px;border-radius:8px;margin:0 0 8px;font-size:13px}
+.paper .key{border:1px solid #999;border-radius:8px;padding:6px 10px;margin-bottom:10px;font-size:13px}
+.paper .key b{font-family:var(--font-num)}
+.paper .q{border:1px solid #bbb;border-radius:10px;padding:8px 12px 8px;margin:0 0 8px;page-break-inside:avoid;break-inside:avoid}
+.paper .qh{display:flex;align-items:center;gap:8px;margin-bottom:2px}
+.paper .qn{display:inline-grid;place-items:center;min-width:26px;height:26px;border-radius:50%;background:#111;color:#fff;font-weight:700;font-family:var(--font-num);font-size:13px}
+.paper .qc{font-size:11px;color:#555;border:1px solid #bbb;border-radius:10px;padding:0 8px}
+.paper .qb{display:flex;flex-wrap:wrap;gap:4px 18px;align-items:center}
+.paper .ex{font-family:var(--font-num);font-weight:700;font-size:20px}
+.paper .lead{font-size:13px}
+.paper .wp{font-size:15px}
+.paper .qfig{display:flex}
+.paper .hissan{border:1px solid #bbb;border-radius:8px;padding:4px 12px 6px;background:#fff;align-self:flex-start}
+.paper .hissan table{border-collapse:collapse;font-family:var(--font-num);font-weight:700;font-size:24px;line-height:1.25;text-align:center}
+.paper .hissan td{min-width:1.4em;padding:0 .1em}
+.paper .hissan .sg{color:#555;text-align:left}
+.paper .hissan .r td{border-top:2px solid #111}
+.paper .divt td{min-width:1em;height:1.3em}
+.paper .divt .dv{border-right:2px solid #111;text-align:right;padding-right:.25em}
+.paper .divt .dd{border-top:2px solid #111}
+.paper .ch{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px 10px;margin-top:4px}
+.paper .ch.long{grid-template-columns:repeat(2,minmax(0,1fr))}
+.paper .ch div{font-family:var(--font-num);font-weight:700;font-size:15px;padding:2px 6px;border-radius:6px}
+.paper .ch div i{font-style:normal;margin-right:6px;color:#555}
+.paper .ch div.ans{background:#dff3e8;border:1.5px solid #12804d}
+.paper .tk{margin-top:5px;font-size:12px;border-top:1px dashed #999;padding-top:4px}
+.paper .tk p{margin:2px 0}
+.paper .tk b{color:#7a3a00}
+.paper .tk ul{margin:2px 0 0;padding-left:1.2em}
+.paper .foot{font-size:11px;color:#666;margin-top:8px;text-align:right}
+`;
+function qPaper(q,i,teacherView){
+  const long=q.ch.some(c=>c.length>9);
+  let h=`<div class="q"><div class="qh"><span class="qn">${i+1}</span>${teacherView?`<span class="qc">${q.c}</span>`:''}</div><div class="qb">${q.q}${q.fig?`<div class="qfig">${q.fig}</div>`:''}</div>`;
+  h+=`<div class="ch${long?' long':''}">`+q.ch.map((c,k)=>`<div class="${teacherView&&k===q.a?'ans':''}"><i>${KATA_[k]}</i>${c}${teacherView&&k===q.a?' ◎':''}</div>`).join('')+'</div>';
+  if(teacherView){
+    h+=`<div class="tk"><p><b>正解</b>　${KATA_[q.a]}　${q.ch[q.a]}</p><p><b>解説</b>　${q.sol}</p><ul>`;
+    q.ch.forEach((c,k)=>{if(k!==q.a)h+=`<li><b>つまずきメモ</b>　${KATA_[k]}（${c}）…${q.w[k]}</li>`});
+    h+='</ul></div>';
+  }
+  return h+'</div>';
+}
+function paperBody(u,idxs,teacherView){
+  const sets=unitSets(u);let h='';
+  idxs.forEach((si,ii)=>{
+    const st=sets[si];
+    h+=`<section class="sheet${ii?' brk':''}"><h1>${CFG.title}　${u.title}</h1><p class="sub">${st.name}（${st.qs.length}問）　${PASSQ}問以上で合格　${teacherView?'':'答えは、ア〜エの中から1つえらびます。'}</p>`;
+    if(teacherView){
+      h+=`<div class="tbanner">講師用　問題・解答・解説・つまずきメモ（生徒には見せないでください）</div>`;
+      h+=`<div class="key"><b>正答</b>　`+st.qs.map((q,i)=>`<b>${i+1}</b>：${KATA_[q.a]}`).join('　')+'</div>';
+    }else{
+      h+='<div class="nameline"><span>名前（　　　　　　　　　　）</span><span>日付（　　　月　　　日）</span><span>得点（　　　　／　10）</span></div>';
+    }
+    h+=st.qs.map((q,i)=>qPaper(q,i,teacherView)).join('');
+    h+='<div class="foot">江原予備校</div></section>';
+  });
+  return `<div class="paper">${h}</div>`;
+}
+function paperDoc(u,idxs,teacherView){
+  const nm=`${CFG.title}　${u.title}${teacherView?'（講師用）':''}`;
+  return `<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${nm}</title><style>body{margin:0;background:#fff}${PCSS}@page{size:A4;margin:12mm}@media print{.paper .sheet{padding:0}}</style></head><body>${paperBody(u,idxs,teacherView)}</body></html>`;
+}
+function openPaper(u,si,teacherView){
+  closePaper();
+  const idxs=si===null?[0,1,2]:[si];
+  const d=document.createElement('div');
+  d.id='pv';d.setAttribute('role','dialog');d.setAttribute('aria-modal','true');d.setAttribute('aria-label','問題');
+  d.dataset.uid=u.id;d.dataset.si=si===null?'all':si;d.dataset.t=teacherView?'1':'0';
+  d.innerHTML=`<div class="pvbar"><b>${u.title}${si===null?'（3回ぜんぶ）':'（'+SETNAMES[si]+'）'}${teacherView?'　講師用':''}</b><span class="pvbtns"><button type="button" class="btn primary small" data-act="pv-print">印刷する</button><button type="button" class="btn small" data-act="pv-save">ファイルに保存</button><button type="button" class="btn small" data-act="pv-close">とじる</button></span></div><p class="pvnote">うまく印刷できないときは「ファイルに保存」を押して、保存したファイルをひらいて印刷してください。</p><div class="pvbody">${paperBody(u,idxs,teacherView)}</div>`;
+  document.body.appendChild(d);document.body.classList.add('pvopen');
+  d.scrollTop=0;
+  const b=$('[data-act="pv-print"]',d);if(b)b.focus();
+}
+function closePaper(){const d=$('#pv');if(d)d.remove();document.body.classList.remove('pvopen')}
+function savePaper(){
+  const d=$('#pv');if(!d)return;
+  const u=CFG.units.find(x=>x.id===d.dataset.uid),tv=d.dataset.t==='1',idxs=d.dataset.si==='all'?[0,1,2]:[+d.dataset.si];
+  const html=paperDoc(u,idxs,tv);
+  const name=`${CFG.prog}_${u.id}_${d.dataset.si==='all'?'all':'set'+(+d.dataset.si+1)}${tv?'_teacher':''}.html`;
+  try{
+    const blob=new Blob([html],{type:'text/html;charset=utf-8'}),a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();
+    setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);
+  }catch(e){alert('保存できませんでした。「印刷する」をお使いください。')}
+}
+
+/* ---------- 一覧・見出し ---------- */
+function chipHtml(id,si){
+  const b=bestOf(id,si),n=recOf(id,si).sc.length;
+  const cls=b>=PASSQ?'ok':(n?'try':'');
+  return `<i class="chip ${cls}" title="${SETNAMES[si]}">${SET_LABEL[si][0]}${b>=PASSQ?'✓':(n?lastOf(id,si):'')}</i>`;
+}
+function renderNav(){
+  let h='',doneN=0,setsN=0;
+  CFG.groups.forEach((gn,gi)=>{
+    const inG=CFG.units.filter(u=>u.g===gi),pn=inG.filter(u=>unitDone(u.id)).length;
+    doneN+=pn;
+    h+=`<div class="grow"><div class="gname"><b>${gn}</b><span class="gcount">${pn} / ${inG.length} 単元クリア</span></div><div class="ugrid">`;
+    inG.forEach(u=>{
+      [0,1,2].forEach(si=>{if(setPassed(u.id,si))setsN++});
+      const f=[0,1,2].some(si=>recOf(u.id,si).feel==='unsure');
+      h+=`<button type="button" class="unit${unitDone(u.id)?' passed':''}" data-unit="${u.id}"${u.id===S.unit.id?' aria-current="true"':''}><span class="u-top"><span class="u-no">${u.no}</span><span class="u-stat">${unitDone(u.id)?'クリア ✓':(f?'要フォロー':'')}</span></span><span class="u-title">${u.short}</span><span class="chips">${[0,1,2].map(si=>chipHtml(u.id,si)).join('')}</span></button>`;
+    });
+    h+='</div></div>';
+  });
+  h+=`<p class="ilegend">基＝基本　標＝標準　応＝応用。8問以上で合格（✓）。数字は最新の正解数です。</p>`;
+  $('#nav').innerHTML=h;
+  const total=CFG.units.length*3;
+  $('#overall').innerHTML=`<span class="ostat"><b>${setsN}</b><span>/ ${total}　合格した回</span></span><span class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(setsN*100/total)}"><i style="width:${Math.round(setsN*100/total)}%"></i></span>`;
+}
+function renderHead(){
+  const u=S.unit;
+  $('#stepNo').textContent=CFG.groups[u.g]+'　単元テスト';
+  $('#stepTitle').textContent=u.title;
+  $('#stepDesc').textContent=u.desc;
+  $('#scoreLine').textContent='';
+  $('#unitBar').innerHTML='';
+}
+function renderAll(){renderNav();renderHead();renderView()}
+function renderView(){
+  if(S.mode==='test')renderTest();
+  else if(S.mode==='result')renderResult();
+  else renderIntro();
+}
+
+/* ---------- 単元のトップ：3回のカード ---------- */
+function renderIntro(){
+  const u=S.unit,desc=u.paper?SET_DESC_H:SET_DESC;
+  let h='<div class="setcards">';
+  [0,1,2].forEach(si=>{
+    const r=recOf(u.id,si),n=r.sc.length,b=bestOf(u.id,si),l=lastOf(u.id,si);
+    const st=n?(b>=PASSQ?`<b class="pass">合格 ✓</b>　最新 ${l}／${NQ}　最高 ${b}／${NQ}`:`最新 ${l}／${NQ}　あと ${PASSQ-b}問で合格`):'まだ挑戦していません';
+    h+=`<div class="card setcard"><p class="sname"><span class="snum">第${si+1}回</span><b>${SET_LABEL[si]}</b></p><p class="sdesc">${desc[si]}</p><p class="sstat">${st}${r.feel==='unsure'?'　<span class="flag">💬 少し不安</span>':''}</p><div class="actions"><button type="button" class="btn primary" data-act="start" data-si="${si}">テストをする</button><button type="button" class="btn" data-act="paper" data-si="${si}">問題を見る・印刷</button></div></div>`;
+  });
+  h+='</div>';
+  if(teacher){
+    h+=`<div class="card tcard"><p class="rtitle">講師用</p><p class="sdesc">問題・正解・解説・つまずきメモがのった紙面です（生徒には見せないでください）。</p><div class="actions">`+
+      [0,1,2].map(si=>`<button type="button" class="btn" data-act="tpaper" data-si="${si}">第${si+1}回（${SET_LABEL[si]}）</button>`).join('')+
+      `<button type="button" class="btn primary" data-act="tpaper" data-si="all">3回ぜんぶ</button></div></div>`;
+  }
+  h+=`<p class="hint">問題は、いつも同じ問題が出ます。まちがえたところは、あとで先生と一緒に見なおしましょう。</p>`;
+  $('#view').innerHTML=h;
+}
+function startTest(si){
+  const st=unitSets(S.unit)[si];
+  T={si,set:st,ans:st.qs.map(()=>-1),msg:''};
+  S.mode='test';S.si=si;renderAll();
+  const p=$('.panel');if(p)p.scrollIntoView({block:'start'});
+}
+
+/* ---------- テスト ---------- */
+function renderTest(){
+  const st=T.set,long=q=>q.ch.some(c=>c.length>9);
+  let h=`<div class="progress"><span class="pcount">${S.unit.title}　第${T.si+1}回（${SET_LABEL[T.si]}）</span><span class="pcount" id="ansCount"></span></div><div class="qlist">`;
+  st.qs.forEach((q,i)=>{
+    h+=`<fieldset class="card qcard" id="qc${i}"><legend><span class="qn">${i+1}</span></legend><div class="qstem">${q.q}</div>${q.fig?`<div class="tfig">${q.fig}</div>`:''}<div class="opts${long(q)?' long':''}" role="radiogroup" aria-label="${i+1}番の答え">`+
+      q.ch.map((c,k)=>`<label class="opt${T.ans[i]===k?' sel':''}"><input type="radio" name="q${i}" value="${k}"${T.ans[i]===k?' checked':''}><span class="kt">${KATA_[k]}</span><span class="ct">${c}</span></label>`).join('')+'</div></fieldset>';
+  });
+  h+=`</div><div class="msg warn" id="msg" role="status">${T.msg||''}</div><div class="actions"><button type="button" class="btn primary" data-act="score">採点する</button><button type="button" class="btn" data-act="back">やめて一覧にもどる</button></div>`;
+  $('#view').innerHTML=h;updCount();
+}
+function updCount(){
+  const n=T.ans.filter(x=>x>=0).length,e=$('#ansCount');if(e)e.textContent=`答えた問題　${n} / ${NQ}`;
+}
+function pick_(i,k){
+  T.ans[i]=k;T.msg='';
+  const card=$('#qc'+i);
+  if(card)card.querySelectorAll('.opt').forEach((l,j)=>l.classList.toggle('sel',j===k));
+  const m=$('#msg');if(m)m.textContent='';
+  updCount();
+}
+function scoreIt(force){
+  const blanks=T.ans.map((a,i)=>a<0?i+1:0).filter(Boolean);
+  if(blanks.length&&!force){
+    T.msg=`まだ答えていない問題があります（${blanks.join('・')}番）。このまま採点するときは、もう一度「採点する」を押してください。`;
+    T.warned=true;renderTest();
+    const f=$('#qc'+(blanks[0]-1));if(f)f.scrollIntoView({block:'center'});
+    return;
+  }
+  finish();
+}
+function finish(){
+  const st=T.set;
+  T.res=st.qs.map((q,i)=>T.ans[i]===q.a);
+  T.ok=T.res.filter(Boolean).length;
+  const r=rec(S.unit.id,T.si);r.sc.push(T.ok);r.feel='';save();
+  S.mode='result';renderAll();
+  const p=$('.panel');if(p)p.scrollIntoView({block:'start'});
+  if(T.ok>=PASSQ)petals();
+}
+
+/* ---------- 結果（解説は出さない） ---------- */
+function renderResult(){
+  const u=S.unit,st=T.set,n=st.qs.length,ok=T.ok;
+  let h=`<div class="work one"><div class="card result"><h3>${n}問中 ${ok}問 せいかい</h3>`;
+  if(ok>=PASSQ)h+='<p class="passbanner">合格 やったね！</p>';
+  else if(ok>=CLOSEQ)h+=`<p class="needmore closep">あと少しです（${PASSQ}問以上で合格）。まちがえた問題を見なおして、もう一度ためしてみよう。</p>`;
+  else h+=`<p class="needmore">${PASSQ}問以上で合格です。あわてなくて大丈夫。まちがえたところを見なおして、もう一度やってみよう。</p>`;
+  h+='<div class="rwrap"><table class="rtab"><thead><tr><th>番</th><th>分類</th><th>あなたの答え</th><th>せいかいの答え</th><th></th></tr></thead><tbody>';
+  st.qs.forEach((q,i)=>{
+    const a=T.ans[i],good=T.res[i];
+    h+=`<tr class="${good?'':'ng'}"><td>${i+1}</td><td class="catc">${q.c}</td><td>${a<0?'—（答えなし）':KATA_[a]+'　'+q.ch[a]}</td><td>${KATA_[q.a]}　${q.ch[q.a]}</td><td class="${good?'okm':'ngm'}">${good?'○':'×'}</td></tr>`;
+  });
+  h+='</tbody></table></div>';
+  /* 分類ごと */
+  h+='<h4 class="subh">分類ごとの せいかい数</h4><div class="rwrap"><table class="rtab ctab"><tbody>';
+  st.cats.forEach(c=>{
+    const tot=st.qs.filter(q=>q.c===c).length,g=st.qs.filter((q,i)=>q.c===c&&T.res[i]).length;
+    h+=`<tr><td class="catc">${c}</td><td class="catn">${g} / ${tot}</td><td class="catb"><span class="bar${g===tot?' ok':''}"><i style="width:${Math.round(g*100/tot)}%"></i></span></td></tr>`;
+  });
+  h+='</tbody></table></div>';
+  /* 自己評価 */
+  h+='<h4 class="subh">今の気もちは？</h4><div class="feelbox" id="feelbox"><div class="actions"><button type="button" class="btn feel" data-act="feel" data-v="ok">わかった</button><button type="button" class="btn feel" data-act="feel" data-v="unsure">少し不安、もう一度教えてほしい</button></div><p class="msg" id="feelmsg" role="status"></p></div>';
+  h+='<div class="actions"><button type="button" class="btn primary" data-act="start" data-si="'+T.si+'">もう一度（同じ問題）</button>';
+  if(T.si<2)h+=`<button type="button" class="btn" data-act="start" data-si="${T.si+1}">つぎの回へ（第${T.si+2}回 ${SET_LABEL[T.si+1]}）</button>`;
+  h+=`<button type="button" class="btn" data-act="paper" data-si="${T.si}">問題を見る・印刷</button><button type="button" class="btn" data-act="list">この単元の一覧にもどる</button></div></div></div>`;
+  $('#view').innerHTML=h;
+}
+function setFeel(v){
+  const r=rec(S.unit.id,T.si);r.feel=v;save();
+  const m=$('#feelmsg');
+  m.className='msg '+(v==='ok'?'good':'warn');
+  m.textContent=v==='ok'?'いいですね。つぎの回にも挑戦してみましょう。':'その気もちを大切にしましょう。先生に「少し不安」と伝えて、もう一度教えてもらいましょう。';
+  document.querySelectorAll('.feel').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===v));
+  renderNav();
+}
+
+/* ---------- 操作 ---------- */
+function setUnit(id,si){
+  S.unit=CFG.units.find(u=>u.id===id)||CFG.units[0];S.mode='intro';T=null;
+  renderAll();
+  try{history.replaceState(null,'','#'+S.unit.id)}catch(e){}
+  if(si!=null&&si>=0&&si<3)startTest(si);
+}
+function goPanel(){const p=$('.panel');if(p)p.scrollIntoView({block:'start',behavior:window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})}
+let navOpen=true;
+try{navOpen=localStorage.getItem(CFG.navKey)!=='0'}catch(e){}
+function applyNav(){const nv=$('#nav'),b=$('#navToggle');nv.hidden=!navOpen;b.setAttribute('aria-expanded',navOpen);b.textContent=navOpen?'一覧をとじる':'単元一覧をひらく'}
+function unlockTeacher(){
+  const inp=$('#tword'),err=$('#terr');
+  if(inp.value.trim()===TEACHER_WORD){
+    teacher=true;try{sessionStorage.setItem('kogen-teacher','1')}catch(e){}
+    inp.value='';err.textContent='';renderTeacherBox();renderView();
+  }else{err.textContent='合言葉が ちがいます。';}
+}
+function renderTeacherBox(){
+  const box=$('#tbox');
+  if(teacher){
+    box.innerHTML='<p>講師用が ひらいています。各単元のページに「講師用」（問題・解答・解説・つまずきメモ）が出ます。</p>'+teacherRecords()+'<div class="actions"><button type="button" class="btn" data-act="tlock">講師用をとじる</button></div>';
+  }else{
+    box.innerHTML='<label for="tword">合言葉</label> <input id="tword" type="password" autocomplete="off" class="tinput"> <button type="button" class="btn small" data-act="tunlock">ひらく</button> <span class="msg warn" id="terr" role="status"></span>';
+  }
+}
+function teacherRecords(){
+  let rows='';
+  CFG.units.forEach(u=>{
+    [0,1,2].forEach(si=>{
+      const r=recOf(u.id,si);if(!r.sc.length)return;
+      rows+=`<tr><td>${u.no} ${u.short}</td><td>第${si+1}回</td><td>${r.sc.join(', ')}</td><td>${r.feel==='unsure'?'少し不安':(r.feel==='ok'?'わかった':'')}</td></tr>`;
+    });
+  });
+  if(!rows)return '<p class="sdesc">この端末の記録は、まだありません。</p>';
+  return `<div class="rwrap"><table class="rtab"><thead><tr><th>単元</th><th>回</th><th>正解数の記録（／10）</th><th>自己評価</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+document.addEventListener('click',e=>{
+  const t=e.target;let el;
+  if((el=t.closest('[data-act]'))){
+    const a=el.dataset.act;
+    if(a==='pv-print'){window.print();return}
+    if(a==='pv-save'){savePaper();return}
+    if(a==='pv-close'){closePaper();return}
+    if(a==='start'){startTest(+el.dataset.si);return}
+    if(a==='paper'){openPaper(S.unit,+el.dataset.si,false);return}
+    if(a==='tpaper'){if(teacher)openPaper(S.unit,el.dataset.si==='all'?null:+el.dataset.si,true);return}
+    if(a==='score'){scoreIt(!!T.warned);return}
+    if(a==='back'){S.mode='intro';T=null;renderAll();return}
+    if(a==='list'){S.mode='intro';T=null;renderAll();goPanel();return}
+    if(a==='feel'){setFeel(el.dataset.v);return}
+    if(a==='tunlock'){unlockTeacher();return}
+    if(a==='tlock'){teacher=false;try{sessionStorage.removeItem('kogen-teacher')}catch(err){}renderTeacherBox();renderView();return}
+  }
+  if((el=t.closest('[data-unit]'))){setUnit(el.dataset.unit);goPanel();return}
+  if(t.closest('#navToggle')){navOpen=!navOpen;applyNav();try{localStorage.setItem(CFG.navKey,navOpen?'1':'0')}catch(err){}return}
+  if(t.closest('#notesClose')){const nd=$('.notes');nd.open=false;nd.scrollIntoView({block:'nearest'});return}
+  if(t.closest('#resetBtn')){
+    const rb=$('#resetBtn');
+    if(rb.dataset.armed){mem={units:{}};save();rb.dataset.armed='';rb.textContent='テストの記録を消す';setUnit(S.unit.id);renderTeacherBox()}
+    else{rb.dataset.armed='1';rb.textContent='もう一度押すと、すべての記録が消えます';setTimeout(()=>{rb.dataset.armed='';rb.textContent='テストの記録を消す'},4000)}
+    return;
+  }
+});
+document.addEventListener('change',e=>{
+  const t=e.target;
+  if(t.matches&&t.matches('.qcard input[type=radio]')&&S.mode==='test'){
+    const i=+t.name.slice(1);pick_(i,+t.value);
+  }
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&$('#pv'))closePaper();
+  if(e.key==='Enter'&&e.target&&e.target.id==='tword'){e.preventDefault();unlockTeacher()}
+});
+
+/* ---------- 画面の骨組み ---------- */
+document.title=CFG.title;
+$('#h1').textContent=CFG.title;
+$('#lead').textContent=CFG.lead;
+$('#links').innerHTML=`<a href="${CFG.practiceUrl}">${CFG.practiceName}へ</a><a href="${CFG.otherUrl}">${CFG.otherName}へ</a><a href="${CFG.indexUrl}">算数プログラムの目次へ</a>`;
+const NOTES=[
+  '1つの単元に「第1回 基本」「第2回 標準」「第3回 応用」の3回があります。1回は4択（ア〜エ）10問で、8問以上で合格、6〜7問は「あと少し」です。',
+  '問題は固定です（いつも同じ問題）。「問題を見る・印刷」で、紙のテストとして印刷できます。うまく印刷できないときは「ファイルに保存」を使ってください。',
+  '採点では、正解・自分の答え・分類ごとの正解数を表示します。解説は生徒には表示しません。',
+  '採点のあと「わかった」「少し不安、もう一度教えてほしい」を選ぶと、この端末に記録されます。「少し不安」は単元一覧に「要フォロー」と出ます。',
+  '先生用：下の「講師用」に合言葉を入れると、問題・正解・解説・つまずきメモ（選んだ答えごとの原因）を表示・印刷できます。',
+  '記録は、この端末のブラウザにだけ残ります。生徒が代わるときは「テストの記録を消す」を押してください。'
+];
+$('#notesList').innerHTML=NOTES.map(x=>`<li>${x}</li>`).join('');
+(function(){const st=document.createElement('style');st.textContent=PCSS;document.head.appendChild(st)})();
+applyNav();
+renderTeacherBox();
+(function(){
+  let id=CFG.units[0].id,si=null;
+  const h=(location.hash||'').replace('#','');
+  if(h){const m=h.match(/^([a-z0-9]+)(?:-([123]))?$/);if(m&&CFG.units.find(u=>u.id===m[1])){id=m[1];if(m[2])si=+m[2]-1}}
+  setUnit(id,si);
+})();
+window.__sansu={CFG,unitSets,paperDoc};
+
+})();
+</script>
+</body>
+</html>
