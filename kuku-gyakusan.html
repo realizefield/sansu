@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>九九のぎゃくさん</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+/* layout: 1カラムの中央寄せ。上に段の選択、中央に大きな式、下に4択ボタン */
+:root{
+  --bg:#f4f7f5;
+  --card:#ffffff;
+  --ink:#1d2b26;
+  --sub:#5d6f68;
+  --line:#d5e0db;
+  --accent:#1f7a5c;
+  --accent-ink:#ffffff;
+  --good:#1f7a5c;
+  --good-bg:#dff3ea;
+  --bad:#b4372c;
+  --bad-bg:#fbe3df;
+  --font:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Hiragino Sans","Yu Gothic","Meiryo",sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121a17;--card:#1b2622;--ink:#e8f0ec;--sub:#9db0a8;--line:#2f3f39;
+    --accent:#4cc79b;--accent-ink:#0c1a14;--good:#4cc79b;--good-bg:#1d3a2e;--bad:#ff8f84;--bad-bg:#3e2420;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121a17;--card:#1b2622;--ink:#e8f0ec;--sub:#9db0a8;--line:#2f3f39;
+  --accent:#4cc79b;--accent-ink:#0c1a14;--good:#4cc79b;--good-bg:#1d3a2e;--bad:#ff8f84;--bad-bg:#3e2420;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-weight:500;line-height:1.6}
+main{max-width:640px;margin:0 auto;padding:20px 16px 48px;display:flex;flex-direction:column;gap:16px}
+h1{font-size:1.5rem;font-weight:900;margin:0;text-wrap:balance}
+.lead{margin:0;color:var(--sub);font-size:.95rem}
+.card{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:18px}
+.label{font-size:.9rem;font-weight:700;color:var(--sub);margin:0 0 10px}
+.dan-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.dan{font-family:inherit;font-size:1.1rem;font-weight:700;padding:12px 0;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+.dan[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.chip{font-family:inherit;font-size:.9rem;font-weight:700;padding:8px 14px;border-radius:999px;border:2px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
+.primary{font-family:inherit;font-size:1.25rem;font-weight:900;padding:16px;border-radius:14px;border:0;background:var(--accent);color:var(--accent-ink);cursor:pointer;width:100%}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.hidden{display:none!important}
+.bar{display:flex;justify-content:space-between;align-items:center;font-weight:700;color:var(--sub);font-size:.95rem}
+.progress{height:10px;background:var(--line);border-radius:999px;overflow:hidden}
+.progress>i{display:block;height:100%;width:0;background:var(--accent);transition:width .25s}
+.eq{display:flex;justify-content:center;align-items:center;gap:.25em;font-size:clamp(2.6rem,13vw,4.4rem);font-weight:900;font-variant-numeric:tabular-nums;padding:14px 0 6px;flex-wrap:nowrap}
+.eq .box{display:inline-flex;align-items:center;justify-content:center;min-width:1.25em;height:1.25em;border:4px dashed var(--accent);border-radius:14px;color:var(--accent)}
+.eq .box.good{border-style:solid;border-color:var(--good);background:var(--good-bg);color:var(--good)}
+.eq .box.bad{border-style:solid;border-color:var(--bad);background:var(--bad-bg);color:var(--bad)}
+.ask{text-align:center;margin:0;color:var(--sub);font-weight:700}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.choice{font-family:inherit;font-size:2.2rem;font-weight:900;padding:18px 0;border-radius:16px;border:3px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer;font-variant-numeric:tabular-nums;position:relative}
+.choice small{position:absolute;left:10px;top:6px;font-size:.75rem;color:var(--sub);font-weight:700}
+.choice:hover:not(:disabled){border-color:var(--accent)}
+.choice.good{background:var(--good-bg);border-color:var(--good);color:var(--good)}
+.choice.bad{background:var(--bad-bg);border-color:var(--bad);color:var(--bad)}
+.choice:disabled{cursor:default}
+.fb{border-radius:14px;padding:14px 16px;font-weight:700}
+.fb.good{background:var(--good-bg);color:var(--good)}
+.fb.bad{background:var(--bad-bg);color:var(--bad)}
+.fb .tbl{display:flex;flex-wrap:wrap;gap:6px 10px;margin-top:8px;color:var(--ink);font-weight:500;font-size:1rem}
+.fb .tbl b{font-weight:900}
+.score{font-size:3.2rem;font-weight:900;text-align:center;margin:0;font-variant-numeric:tabular-nums}
+.wrong-list{display:flex;flex-direction:column;gap:6px;margin:8px 0 0;padding:0;list-style:none;font-size:1.15rem;font-variant-numeric:tabular-nums}
+.wrong-list li{padding:8px 12px;border-radius:10px;background:var(--bad-bg)}
+.stack{display:flex;flex-direction:column;gap:10px}
+.ghost{font-family:inherit;font-size:1rem;font-weight:700;padding:14px;border-radius:14px;border:2px solid var(--accent);background:transparent;color:var(--accent);cursor:pointer;width:100%}
+#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:50}
+@media (prefers-reduced-motion: reduce){.progress>i{transition:none}#fx{display:none}}
+</style>
+</head>
+<body>
+<canvas id="fx" aria-hidden="true"></canvas>
+<main>
+  <header>
+    <h1>九九のぎゃくさん</h1>
+    <p class="lead">「6 × □ ＝ 12」や「12 ÷ 6 ＝ □」の □ に入る数を、4つの中から選びます。わり算は、九九を逆に考えれば答えが出ます。</p>
+  </header>
+
+  <!-- 設定画面 -->
+  <section id="setup" class="stack">
+    <div class="card">
+      <p class="label">問題のしゅるい</p>
+      <div class="row" style="margin-top:0" id="modeRow"></div>
+    </div>
+    <div class="card">
+      <p class="label">れんしゅうする段（いくつでも選べます）</p>
+      <div class="dan-grid" id="danGrid"></div>
+      <div class="row">
+        <button class="chip" id="selAll" type="button">ぜんぶ選ぶ</button>
+        <button class="chip" id="selClear" type="button">選びなおす</button>
+      </div>
+    </div>
+    <div class="card">
+      <p class="label">問題の数</p>
+      <div class="row" style="margin-top:0" id="countRow"></div>
+    </div>
+    <button class="primary" id="startBtn" type="button">はじめる</button>
+  </section>
+
+  <!-- 出題画面 -->
+  <section id="quiz" class="stack hidden" aria-live="polite">
+    <div class="bar"><span id="qNum">1 / 10</span><span id="qScore">せいかい 0</span></div>
+    <div class="progress" aria-hidden="true"><i id="prog"></i></div>
+    <div class="card">
+      <p class="ask">□ に入る数は？</p>
+      <div class="eq" id="eq"></div>
+    </div>
+    <div class="choices" id="choices"></div>
+    <div id="fb"></div>
+    <button class="primary hidden" id="nextBtn" type="button">つぎへ</button>
+  </section>
+
+  <!-- 結果画面 -->
+  <section id="result" class="stack hidden">
+    <div class="card">
+      <p class="label">けっか</p>
+      <p class="score" id="finalScore"></p>
+      <p class="lead" id="finalMsg" style="text-align:center"></p>
+      <div id="wrongBox" class="hidden">
+        <p class="label" style="margin-top:16px">まちがえた問題</p>
+        <ul class="wrong-list" id="wrongList"></ul>
+      </div>
+    </div>
+    <button class="primary hidden" id="retryWrong" type="button">まちがえた問題だけ、もう一度</button>
+    <button class="ghost" id="again" type="button">同じ設定でもう一度</button>
+    <button class="ghost" id="backSetup" type="button">段をえらびなおす</button>
+  </section>
+</main>
+
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var selected = new Set([2,3,4,5,6,7,8,9]);
+  var total = 10;
+  var mode = 'mul'; // mul: 6×□＝12 / div: 12÷6＝□ / mix: まぜる
+  var queue = [], idx = 0, correct = 0, wrongs = [], answered = false, current = null;
+
+  // 設定画面を作る
+  var grid = $('danGrid');
+  for (var d = 1; d <= 9; d++) {
+    (function(d){
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'dan'; b.textContent = d + 'の段';
+      b.setAttribute('aria-pressed', selected.has(d) ? 'true' : 'false');
+      b.addEventListener('click', function(){
+        if (selected.has(d)) selected.delete(d); else selected.add(d);
+        b.setAttribute('aria-pressed', selected.has(d) ? 'true' : 'false');
+      });
+      grid.appendChild(b);
+    })(d);
+  }
+  function refreshDan(){
+    Array.prototype.forEach.call(grid.children, function(b, i){
+      b.setAttribute('aria-pressed', selected.has(i+1) ? 'true' : 'false');
+    });
+  }
+  $('selAll').onclick = function(){ for (var i=1;i<=9;i++) selected.add(i); refreshDan(); };
+  $('selClear').onclick = function(){ selected.clear(); refreshDan(); };
+
+  var modeRow = $('modeRow');
+  [['mul','6 × □ ＝ 12'],['div','12 ÷ 6 ＝ □'],['mix','まぜる']].forEach(function(m){
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'dan'; b.style.padding = '12px 16px';
+    b.textContent = m[1]; b.setAttribute('aria-pressed', m[0] === mode ? 'true' : 'false');
+    b.addEventListener('click', function(){
+      mode = m[0];
+      Array.prototype.forEach.call(modeRow.children, function(c){ c.setAttribute('aria-pressed','false'); });
+      b.setAttribute('aria-pressed','true');
+    });
+    modeRow.appendChild(b);
+  });
+
+  var countRow = $('countRow');
+  [10, 20, 30].forEach(function(n){
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'dan'; b.style.padding = '12px 22px';
+    b.textContent = n + '問'; b.setAttribute('aria-pressed', n === total ? 'true' : 'false');
+    b.addEventListener('click', function(){
+      total = n;
+      Array.prototype.forEach.call(countRow.children, function(c){ c.setAttribute('aria-pressed','false'); });
+      b.setAttribute('aria-pressed','true');
+    });
+    countRow.appendChild(b);
+  });
+
+  // 花吹雪：桜の花びらを上から舞わせる
+  var fx = $('fx'), fctx = fx.getContext('2d'), petals = [], fxRun = false;
+  var PINKS = ['#ffc1d6','#ffadc9','#ff94b8','#ffd6e4','#f77fa8'];
+  function fxResize(){
+    var r = window.devicePixelRatio || 1;
+    fx.width = innerWidth * r; fx.height = innerHeight * r;
+    fctx.setTransform(r,0,0,r,0,0);
+  }
+  fxResize(); addEventListener('resize', fxResize);
+  function sakura(count){
+    for (var i = 0; i < count; i++) {
+      petals.push({
+        x: Math.random() * innerWidth,
+        y: -20 - Math.random() * innerHeight * 0.5,
+        s: 9 + Math.random() * 11,
+        vy: 2 + Math.random() * 2.5,
+        vx: -1 + Math.random() * 2.5,
+        sw: Math.random() * Math.PI * 2,
+        swv: 0.03 + Math.random() * 0.04,
+        rot: Math.random() * Math.PI * 2,
+        rv: -0.05 + Math.random() * 0.1,
+        c: PINKS[Math.floor(Math.random() * PINKS.length)]
+      });
+    }
+    if (!fxRun) { fxRun = true; requestAnimationFrame(fxLoop); }
+  }
+  function drawPetal(p){
+    fctx.save();
+    fctx.translate(p.x, p.y);
+    fctx.rotate(p.rot);
+    fctx.scale(1, Math.abs(Math.cos(p.sw)) * 0.6 + 0.4);
+    fctx.fillStyle = p.c;
+    var s = p.s;
+    fctx.beginPath();
+    fctx.moveTo(0, s * 0.5);
+    fctx.bezierCurveTo(-s * 0.9, s * 0.2, -s * 0.7, -s * 0.8, -s * 0.12, -s * 0.6);
+    fctx.lineTo(0, -s * 0.4);
+    fctx.lineTo(s * 0.12, -s * 0.6);
+    fctx.bezierCurveTo(s * 0.7, -s * 0.8, s * 0.9, s * 0.2, 0, s * 0.5);
+    fctx.fill();
+    fctx.restore();
+  }
+  function fxLoop(){
+    fctx.clearRect(0, 0, innerWidth, innerHeight);
+    petals = petals.filter(function(p){ return p.y < innerHeight + 30; });
+    petals.forEach(function(p){
+      p.sw += p.swv; p.rot += p.rv;
+      p.x += p.vx + Math.sin(p.sw) * 1.2;
+      p.y += p.vy;
+      drawPetal(p);
+    });
+    if (petals.length) requestAnimationFrame(fxLoop);
+    else { fxRun = false; fctx.clearRect(0, 0, innerWidth, innerHeight); }
+  }
+
+  function shuffle(a){
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  // 問題づくり：d × □ = d×x。□は1〜9
+  function buildPool(dans, md){
+    var pool = [];
+    var types = md === 'mix' ? ['mul','div'] : [md];
+    dans.forEach(function(d){
+      for (var x = 1; x <= 9; x++) types.forEach(function(t){ pool.push({d:d, x:x, t:t}); });
+    });
+    return pool;
+  }
+  function pickQuestions(pool, n){
+    var out = [];
+    while (out.length < n) { out = out.concat(shuffle(pool.slice())); }
+    // 同じ問題が続かないようにしながら n 個に切る
+    out = out.slice(0, n);
+    for (var i = 1; i < out.length; i++) {
+      if (out[i].d === out[i-1].d && out[i].x === out[i-1].x && out[i].t === out[i-1].t) {
+        var j = (i + 1) % out.length; var t = out[i]; out[i] = out[j]; out[j] = t;
+      }
+    }
+    return out;
+  }
+  // 選択肢：正解＋まぎらわしい3つ（前後の数を優先）
+  function makeChoices(x){
+    var near = [x-1, x+1, x-2, x+2].filter(function(v){ return v >= 1 && v <= 9; });
+    var others = [];
+    for (var v = 1; v <= 9; v++) if (v !== x && near.indexOf(v) === -1) others.push(v);
+    var wrong = shuffle(near.slice(0,2)).concat(shuffle(near.slice(2).concat(others)));
+    wrong = wrong.slice(0, 3);
+    return shuffle([x].concat(wrong));
+  }
+
+  function show(id){
+    ['setup','quiz','result'].forEach(function(s){ $(s).classList.toggle('hidden', s !== id); });
+    window.scrollTo(0, 0);
+  }
+
+  function startWith(questions){
+    queue = questions; idx = 0; correct = 0; wrongs = [];
+    show('quiz'); renderQ();
+  }
+
+  $('startBtn').onclick = function(){
+    if (selected.size === 0) { for (var i=1;i<=9;i++) selected.add(i); refreshDan(); }
+    var dans = Array.from(selected).sort(function(a,b){return a-b;});
+    lastSetup = {dans: dans, n: total, mode: mode};
+    startWith(pickQuestions(buildPool(dans, mode), total));
+  };
+  var lastSetup = null;
+
+  function renderQ(){
+    answered = false;
+    current = queue[idx];
+    var p = current.d * current.x;
+    $('qNum').textContent = (idx + 1) + ' / ' + queue.length;
+    $('qScore').textContent = 'せいかい ' + correct;
+    $('prog').style.width = (idx / queue.length * 100) + '%';
+    $('eq').innerHTML = current.t === 'div'
+      ? '<span>' + p + '</span><span>÷</span><span>' + current.d + '</span><span>＝</span><span class="box" id="box">?</span>'
+      : '<span>' + current.d + '</span><span>×</span><span class="box" id="box">?</span><span>＝</span><span>' + p + '</span>';
+    var wrap = $('choices'); wrap.innerHTML = '';
+    makeChoices(current.x).forEach(function(v, i){
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'choice'; b.dataset.v = v;
+      b.innerHTML = '<small>' + (i+1) + '</small>' + v;
+      b.addEventListener('click', function(){ answer(v, b); });
+      wrap.appendChild(b);
+    });
+    $('fb').innerHTML = '';
+    $('nextBtn').classList.add('hidden');
+  }
+
+  function chain(d, x){
+    // 九九をとなえる：d×1 … d×x
+    var parts = [];
+    for (var k = 1; k <= x; k++) parts.push('<span>' + d + '×' + k + '＝' + (d*k) + '</span>');
+    return parts.join('');
+  }
+
+  function answer(v, btn){
+    if (answered) return;
+    answered = true;
+    var p = current.d * current.x;
+    var ok = (v === current.x);
+    var box = $('box');
+    Array.prototype.forEach.call($('choices').children, function(b){
+      b.disabled = true;
+      if (Number(b.dataset.v) === current.x) b.classList.add('good');
+    });
+    if (ok) {
+      correct++;
+      btn.classList.add('good');
+      box.textContent = current.x; box.className = 'box good';
+      $('fb').innerHTML = '<div class="fb good">せいかい！　' + (current.t === 'div'
+        ? p + ' ÷ ' + current.d + ' ＝ ' + current.x + '（' + current.d + ' × ' + current.x + ' ＝ ' + p + '）'
+        : current.d + ' × ' + current.x + ' ＝ ' + p + '（' + p + ' ÷ ' + current.d + ' ＝ ' + current.x + '）') + '</div>';
+      sakura(70);
+    } else {
+      btn.classList.add('bad');
+      box.textContent = current.x; box.className = 'box bad';
+      wrongs.push({d: current.d, x: current.x, t: current.t});
+      var hint = current.t === 'div'
+        ? current.d + ' × □ ＝ ' + p + ' と考えます。　' + p + ' ÷ ' + current.d + ' ＝ <b>' + current.x + '</b>'
+        : p + ' ÷ ' + current.d + ' ＝ <b>' + current.x + '</b>';
+      $('fb').innerHTML = '<div class="fb bad">おしい！　答えは ' + current.x + ' です。' + current.d + 'の段をとなえてみましょう。<div class="tbl">' + chain(current.d, current.x) + '</div><div style="margin-top:8px;color:var(--ink)">' + hint + '</div></div>';
+    }
+    $('qScore').textContent = 'せいかい ' + correct;
+    $('prog').style.width = ((idx + 1) / queue.length * 100) + '%';
+    var nb = $('nextBtn');
+    nb.textContent = (idx + 1 === queue.length) ? 'けっかを見る' : 'つぎへ';
+    nb.classList.remove('hidden');
+    nb.focus({preventScroll:true});
+  }
+
+  $('nextBtn').onclick = function(){
+    if (!answered) return;
+    idx++;
+    if (idx >= queue.length) { finish(); } else { renderQ(); }
+  };
+
+  function finish(){
+    show('result');
+    var n = queue.length;
+    $('finalScore').textContent = correct + ' / ' + n;
+    var msg = correct === n ? 'ぜんぶ正解です。すばらしい！'
+            : correct / n >= 0.8 ? 'よくできました。あと少しです。'
+            : correct / n >= 0.5 ? 'この調子です。まちがえた問題をもう一度やってみましょう。'
+            : '九九を声に出してとなえながら、もう一度やってみましょう。';
+    $('finalMsg').textContent = msg;
+    if (correct === n) { sakura(200); }
+    var seen = {}, uniq = [];
+    wrongs.forEach(function(w){ var k = w.t + '_' + w.d + '_' + w.x; if (!seen[k]) { seen[k] = 1; uniq.push(w); } });
+    $('wrongBox').classList.toggle('hidden', uniq.length === 0);
+    $('retryWrong').classList.toggle('hidden', uniq.length === 0);
+    $('wrongList').innerHTML = uniq.map(function(w){
+      var q = w.t === 'div' ? (w.d*w.x) + ' ÷ ' + w.d + ' ＝ □' : w.d + ' × □ ＝ ' + (w.d*w.x);
+      return '<li>' + q + '　→　□ ＝ <b>' + w.x + '</b></li>';
+    }).join('');
+    window._uniqWrong = uniq;
+  }
+
+  $('retryWrong').onclick = function(){
+    startWith(shuffle(window._uniqWrong.slice()));
+  };
+  $('again').onclick = function(){
+    if (lastSetup) startWith(pickQuestions(buildPool(lastSetup.dans, lastSetup.mode), lastSetup.n));
+  };
+  $('backSetup').onclick = function(){ show('setup'); };
+
+  // キーボード：1〜4で選ぶ、Enter/スペースで次へ
+  document.addEventListener('keydown', function(e){
+    if ($('quiz').classList.contains('hidden')) return;
+    if (!answered && e.key >= '1' && e.key <= '4') {
+      var b = $('choices').children[Number(e.key) - 1];
+      if (b) b.click();
+    } else if (answered && e.key === 'Enter') {
+      $('nextBtn').click();
+    }
+  });
+})();
+</script>
+</body>
+</html>
