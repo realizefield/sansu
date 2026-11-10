@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>アルファベット 大文字をおぼえよう</title>
+<style>
+:root{--bg:#fbf8f1;--ink:#2b2b2b;--sub:#6b6558;--accent:#e8590c;--blue:#1c7ed6;--ok:#2f9e44;--ng:#e03131;--card:#fff;--line:#e6dfd0}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Hiragino Sans","Yu Gothic","Meiryo",sans-serif;font-size:18px;line-height:1.6}
+.wrap{max-width:720px;margin:0 auto;padding:16px}
+h1{font-size:24px;margin:4px 0 2px}
+.lead{color:var(--sub);margin:0 0 14px;font-size:16px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.tabs button{flex:1;min-width:70px;padding:12px 8px;font-size:18px;border:2px solid var(--line);background:var(--card);border-radius:12px;cursor:pointer;color:var(--ink);font-family:inherit}
+.tabs button.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+.tabs.mode button.on{background:var(--blue);border-color:var(--blue)}
+.card{background:var(--card);border:2px solid var(--line);border-radius:18px;padding:16px;margin:12px 0}
+.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.grid button{aspect-ratio:1;font-size:26px;border:2px solid var(--line);background:#fff;border-radius:10px;cursor:pointer;position:relative;font-family:"Century Gothic","Trebuchet MS",Arial,sans-serif;color:var(--ink)}
+.grid button.cur{border-color:var(--accent);background:#fff1e6}
+.grid button.done::after{content:"★";position:absolute;right:3px;top:0;font-size:12px;color:#f08c00}
+.big{font-family:"Century Gothic","Trebuchet MS",Arial,sans-serif;font-size:min(46vw,230px);line-height:1.05;text-align:center;font-weight:600;color:var(--accent);margin:6px 0;user-select:none}
+.row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:8px 0}
+.btn{padding:12px 18px;font-size:18px;border-radius:12px;border:2px solid var(--blue);background:#fff;color:var(--blue);cursor:pointer;font-family:inherit}
+.btn.fill{background:var(--blue);color:#fff}
+.btn.gray{border-color:var(--line);color:var(--sub)}
+.word{text-align:center;font-size:22px}
+.word b{font-size:30px;color:var(--blue)}
+.note{background:#fff9db;border-radius:10px;padding:8px 12px;font-size:16px;margin-top:10px}
+canvas{width:100%;height:auto;aspect-ratio:1;background:#fff;border:2px dashed var(--line);border-radius:14px;touch-action:none;display:block}
+.q{text-align:center;font-size:20px}
+.qbig{font-family:"Century Gothic","Trebuchet MS",Arial,sans-serif;font-size:56px;font-weight:600;letter-spacing:.12em;text-align:center;margin:8px 0;color:var(--accent)}
+.choices{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:10px}
+.choices button{font-family:"Century Gothic","Trebuchet MS",Arial,sans-serif;font-size:44px;font-weight:600;padding:12px;border-radius:14px;border:3px solid var(--line);background:#fff;cursor:pointer;color:var(--ink)}
+.choices button.ok{border-color:var(--ok);background:#ebfbee}
+.choices button.ng{border-color:var(--ng);background:#fff0f0}
+.fb{text-align:center;font-size:22px;font-weight:700;min-height:34px}
+.bar{height:10px;background:var(--line);border-radius:6px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ok);width:0}
+.hide{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>アルファベット 大文字をおぼえよう</h1>
+<p class="lead">まず「学ぶ」で見て聞いて、「書く」でなぞって、「クイズ」で確かめましょう。★がついた文字は覚えた文字です。</p>
+
+<div class="tabs" id="groups"></div>
+<div class="tabs mode" id="modes">
+ <button data-m="learn" class="on">① 学ぶ</button>
+ <button data-m="write">② 書く</button>
+ <button data-m="quiz">③ クイズ</button>
+</div>
+
+<div class="card"><div class="grid" id="grid"></div></div>
+
+<section id="learn" class="card">
+ <div class="big" id="bigL"></div>
+ <div class="word" id="wordL"></div>
+ <div class="row">
+  <button class="btn" id="prev">◀ まえ</button>
+  <button class="btn fill" id="sayL">🔊 音を聞く</button>
+  <button class="btn" id="next">つぎ ▶</button>
+ </div>
+ <div class="row"><button class="btn fill" id="markL">★ 覚えた！</button></div>
+ <div class="note" id="tip"></div>
+</section>
+
+<section id="write" class="card hide">
+ <p class="q">うすい文字をなぞって、そのあと何も見ずに書いてみましょう。</p>
+ <canvas id="cv" width="600" height="600"></canvas>
+ <div class="row">
+  <button class="btn" id="wprev">◀ まえ</button>
+  <button class="btn fill" id="wsay">🔊 音</button>
+  <button class="btn" id="wnext">つぎ ▶</button>
+ </div>
+ <div class="row">
+  <button class="btn gray" id="wclear">消す</button>
+  <button class="btn gray" id="wguide">お手本 ON/OFF</button>
+ </div>
+</section>
+
+<section id="quiz" class="card hide">
+ <div class="tabs" id="qmodes">
+  <button data-q="sound" class="on">🔊 音を聞いて選ぶ</button>
+  <button data-q="next">つぎの文字は？</button>
+  <button data-q="gap">ぬけている文字は？</button>
+ </div>
+ <div class="bar"><i id="prog"></i></div>
+ <p class="q" id="qtext"></p>
+ <div id="qarea"></div>
+ <div class="choices" id="choices"></div>
+ <div class="fb" id="fb"></div>
+ <div class="row"><button class="btn fill hide" id="qnext">つぎへ ▶</button></div>
+</section>
+</div>
+
+<script>
+const CASE="upper"; // upper | lower
+const UP="ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const GROUPS=[["A〜G".replace("A〜G",CASE==="upper"?"A〜G":"a〜g"),0,7],[CASE==="upper"?"H〜N":"h〜n",7,14],[CASE==="upper"?"O〜U":"o〜u",14,21],[CASE==="upper"?"V〜Z":"v〜z",21,26],["ぜんぶ",0,26]];
+const WORDS={A:["apple","りんご"],B:["ball","ボール"],C:["cat","ねこ"],D:["dog","いぬ"],E:["egg","たまご"],F:["fish","さかな"],G:["girl","女の子"],H:["hat","ぼうし"],I:["ice cream","アイスクリーム"],J:["juice","ジュース"],K:["key","かぎ"],L:["lion","ライオン"],M:["moon","月"],N:["nose","はな"],O:["orange","オレンジ"],P:["pig","ぶた"],Q:["queen","女王さま"],R:["rabbit","うさぎ"],S:["sun","太陽"],T:["tiger","とら"],U:["umbrella","かさ"],V:["violin","バイオリン"],W:["water","水"],X:["box","はこ"],Y:["yo-yo","ヨーヨー"],Z:["zebra","しまうま"]};
+const TIPS_LOWER={b:"b は「ぼうし(棒)が左、おなかが右」。d と まちがえやすいので注意！",d:"d は「おなかが左、棒が右」。b と まちがえやすいので注意！",p:"p は「棒が下に出て、おなかが右」。q と まちがえやすいです。",q:"q は「棒が下に出て、おなかが左」。p と まちがえやすいです。",a:"a は まるを書いてから、右に短い棒を足します。",g:"g は まるのあと、下にしっぽが出ます。",l:"l は まっすぐ1本の線です。大文字の I とよく似ています。",i:"i は 線の上に点を1つ。",j:"j は 下にカーブして、上に点を1つ。",t:"t は 十字の形。横線を忘れずに。",u:"u は 右側に棒があるコップの形。",n:"n は 山がひとつ。m は 山がふたつ。",m:"m は 山がふたつ。n は 山がひとつ。",v:"v は 小さい形。大文字の V と形は同じで大きさがちがいます。",w:"w は v がふたつ並んだ形です。"};
+const TIPS_UPPER={B:"B は 左に縦線、右に ふくらみが2つ。",D:"D は 左に縦線、右に大きなふくらみ1つ。",I:"I は 縦線1本(上下に短い横線をつけることもあります)。",O:"O は 大きな まる。数字の 0 より丸いです。",Q:"Q は O にしっぽがついた形。",P:"P は 左に縦線、右上にふくらみ1つ。",R:"R は P に 足がついた形。",E:"E は 横線が3本。F は 横線が2本。",F:"F は 横線が2本。E は 3本。",M:"M は 山がふたつ(とがった形)。",N:"N は 縦・ななめ・縦の「Z」を立てた形。",W:"W は V がふたつ並んだ形。",V:"V は 下でとがる形。",X:"X は 2本の線が交差。",Z:"Z は 横・ななめ・横。数字の 2 と似ています。"};
+const TIPS=CASE==="upper"?TIPS_UPPER:TIPS_LOWER;
+const CONFUSE={b:"d",d:"b",p:"q",q:"p",m:"n",n:"m",u:"n",v:"w",w:"v",i:"j",j:"i",l:"i",B:"D",D:"B",E:"F",F:"E",P:"R",R:"P",O:"Q",Q:"O",M:"N",N:"M",V:"W",W:"V",I:"L",L:"I"};
+const L=c=>CASE==="upper"?c.toUpperCase():c.toLowerCase();
+const LET=[...UP].map(L);
+let gi=0,mode="learn",idx=0,qmode="sound",guideOn=true;
+let prog={};
+try{prog=JSON.parse(localStorage.getItem("alpha_"+CASE)||"{}")}catch(e){}
+const save=()=>{try{localStorage.setItem("alpha_"+CASE,JSON.stringify(prog))}catch(e){}};
+const $=id=>document.getElementById(id);
+const cur=()=>LET.slice(GROUPS[gi][1],GROUPS[gi][2]);
+const isDone=c=>(prog[c]||0)>=3;
+
+function say(t){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang="en-US";u.rate=.8;speechSynthesis.speak(u)}catch(e){}}
+function beep(ok){try{const a=new (window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.frequency.value=ok?880:220;g.gain.value=.08;o.start();o.stop(a.currentTime+(ok?.15:.3))}catch(e){}}
+
+function buildGroups(){const el=$("groups");el.innerHTML="";GROUPS.forEach((g,i)=>{const b=document.createElement("button");b.textContent=g[0];if(i===gi)b.className="on";b.onclick=()=>{gi=i;idx=0;render()};el.appendChild(b)})}
+function buildGrid(){const el=$("grid");el.innerHTML="";cur().forEach((c,i)=>{const b=document.createElement("button");b.textContent=c;if(i===idx&&mode!=="quiz")b.classList.add("cur");if(isDone(c))b.classList.add("done");b.onclick=()=>{idx=i;if(mode==="quiz")return;render();if(mode==="learn")say(c)};el.appendChild(b)})}
+
+function renderLearn(){const c=cur()[idx],U=c.toUpperCase(),w=WORDS[U];
+ $("bigL").textContent=c;
+ const word=CASE==="upper"?w[0].replace(/^./,m=>m.toUpperCase()):w[0];
+ $("wordL").innerHTML=`<b>${word[0]}</b>${word.slice(1)} ＝ ${w[1]}`;
+ $("tip").textContent=TIPS[c]?"💡 "+TIPS[c]:"💡 声に出して読みながら、指で空中に3回書いてみましょう。";
+ $("markL").textContent=isDone(c)?"★ 覚えた(もう一度おす→はずす)":"★ 覚えた！";}
+function bump(c,n){prog[c]=n;save()}
+
+/* ---- write ---- */
+const cv=$("cv"),ctx=cv.getContext("2d");let drawing=false;
+function drawGuide(){ctx.clearRect(0,0,600,600);
+ ctx.strokeStyle="#eee6d3";ctx.lineWidth=2;ctx.setLineDash([8,8]);
+ [[0,150,600,150],[0,300,600,300],[0,450,600,450]].forEach(l=>{ctx.beginPath();ctx.moveTo(l[0],l[1]);ctx.lineTo(l[2],l[3]);ctx.stroke()});ctx.setLineDash([]);
+ if(guideOn){ctx.fillStyle="#f1ddc9";ctx.font="600 440px 'Century Gothic','Trebuchet MS',Arial,sans-serif";ctx.textAlign="center";ctx.textBaseline="alphabetic";ctx.fillText(cur()[idx],300,CASE==="upper"?470:440)}}
+function pos(e){const r=cv.getBoundingClientRect();return[(e.clientX-r.left)*600/r.width,(e.clientY-r.top)*600/r.height]}
+cv.addEventListener("pointerdown",e=>{drawing=true;cv.setPointerCapture(e.pointerId);const[x,y]=pos(e);ctx.beginPath();ctx.moveTo(x,y);ctx.strokeStyle="#1c7ed6";ctx.lineWidth=16;ctx.lineCap="round";ctx.lineJoin="round";ctx.lineTo(x+.1,y+.1);ctx.stroke()});
+cv.addEventListener("pointermove",e=>{if(!drawing)return;const[x,y]=pos(e);ctx.lineTo(x,y);ctx.stroke()});
+["pointerup","pointercancel"].forEach(t=>cv.addEventListener(t,()=>{drawing=false}));
+
+/* ---- quiz ---- */
+let Q={n:0,score:0,list:[],ans:false};
+const TOTAL=10;
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function startQuiz(){Q={n:0,score:0,ans:false};$("qnext").classList.add("hide");nextQ()}
+function choicesFor(ans,pool){const s=new Set([ans]);if(CONFUSE[ans]&&pool.includes(CONFUSE[ans]))s.add(CONFUSE[ans]);for(const c of shuffle(pool)){if(s.size>=4)break;s.add(c)}return shuffle([...s])}
+function nextQ(){
+ if(Q.n>=TOTAL){return finishQuiz()}
+ Q.ans=false;$("fb").textContent="";$("qnext").classList.add("hide");
+ $("prog").style.width=(Q.n/TOTAL*100)+"%";
+ const pool=cur();let ans,opts,pi;
+ if(qmode==="sound"){ans=pool[Math.floor(Math.random()*pool.length)];opts=choicesFor(ans,pool);
+  $("qtext").textContent=`第${Q.n+1}問　聞こえた文字を選びましょう`;
+  $("qarea").innerHTML='<div class="row"><button class="btn fill" id="rep">🔊 もう一度聞く</button></div>';$("rep").onclick=()=>say(ans);setTimeout(()=>say(ans),200);}
+ else if(qmode==="next"){const full=LET;const i=Math.floor(Math.random()*(full.length-1));ans=full[i+1];const base=full[i];
+  const p=pool.length>=4?pool:LET;opts=choicesFor(ans,LET.filter(c=>c!==base));
+  $("qtext").textContent=`第${Q.n+1}問　この文字のつぎは？`;
+  $("qarea").innerHTML=`<div class="qbig">${base} → ?</div>`;}
+ else{const full=LET;let i=Math.floor(Math.random()*(full.length-4));const seq=full.slice(i,i+5);const gap=1+Math.floor(Math.random()*3);ans=seq[gap];
+  opts=choicesFor(ans,LET.filter(c=>!seq.includes(c)||c===ans));
+  $("qtext").textContent=`第${Q.n+1}問　ぬけている文字は？`;
+  $("qarea").innerHTML=`<div class="qbig">${seq.map((c,k)=>k===gap?"＿":c).join(" ")}</div>`;}
+ const el=$("choices");el.innerHTML="";
+ opts.forEach(c=>{const b=document.createElement("button");b.textContent=c;b.onclick=()=>answer(b,c,ans);el.appendChild(b)});
+}
+function answer(btn,c,ans){if(Q.ans)return;Q.ans=true;
+ const ok=c===ans;beep(ok);
+ if(ok){btn.classList.add("ok");Q.score++;$("fb").textContent="⭕ せいかい！";$("fb").style.color="var(--ok)";bump(ans,(prog[ans]||0)+1);}
+ else{btn.classList.add("ng");[...$("choices").children].forEach(b=>{if(b.textContent===ans)b.classList.add("ok")});$("fb").textContent=`❌ 正しくは「${ans}」です`;$("fb").style.color="var(--ng)";bump(ans,Math.max(0,(prog[ans]||0)-1));say(ans);}
+ Q.n++;buildGrid();$("qnext").textContent=Q.n>=TOTAL?"けっかを見る ▶":"つぎへ ▶";$("qnext").classList.remove("hide");}
+function finishQuiz(){$("prog").style.width="100%";$("qarea").innerHTML="";$("choices").innerHTML="";
+ const s=Q.score;$("qtext").textContent=`けっか：${TOTAL}問中 ${s}問 せいかい`;
+ $("fb").style.color="var(--ink)";$("fb").textContent=s>=9?"すばらしい！ほぼ完ぺきです🎉":s>=7?"よくできました！あと少しです👍":"だいじょうぶ。「学ぶ」にもどって、もう一度やってみましょう。";
+ $("qnext").textContent="もう一度やる";$("qnext").classList.remove("hide");Q.n=TOTAL+1;}
+$("qnext").onclick=()=>{if(Q.n>TOTAL)startQuiz();else nextQ()};
+$("qmodes").onclick=e=>{const q=e.target.dataset&&e.target.dataset.q;if(!q)return;qmode=q;[...$("qmodes").children].forEach(b=>b.classList.toggle("on",b.dataset.q===q));startQuiz()};
+
+/* ---- wiring ---- */
+function step(d){const n=cur().length;idx=(idx+d+n)%n;render();if(mode==="learn")say(cur()[idx])}
+$("prev").onclick=()=>step(-1);$("next").onclick=()=>step(1);
+$("wprev").onclick=()=>step(-1);$("wnext").onclick=()=>step(1);
+$("sayL").onclick=()=>say(cur()[idx]);$("wsay").onclick=()=>say(cur()[idx]);
+$("markL").onclick=()=>{const c=cur()[idx];bump(c,isDone(c)?0:3);render()};
+$("wclear").onclick=drawGuide;$("wguide").onclick=()=>{guideOn=!guideOn;drawGuide()};
+$("modes").onclick=e=>{const m=e.target.dataset&&e.target.dataset.m;if(!m)return;mode=m;render();if(m==="quiz")startQuiz()};
+function render(){
+ buildGroups();[...$("modes").children].forEach(b=>b.classList.toggle("on",b.dataset.m===mode));
+ ["learn","write","quiz"].forEach(s=>$(s).classList.toggle("hide",s!==mode));
+ buildGrid();
+ if(mode==="learn")renderLearn();
+ if(mode==="write")drawGuide();
+}
+render();
+</script>
+</body>
+</html>

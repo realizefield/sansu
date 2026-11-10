@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ローマ字をおぼえよう</title>
+<style>
+:root{--bg:#fbf8f1;--ink:#2b2b2b;--sub:#6b6558;--accent:#e8590c;--blue:#1c7ed6;--ok:#2f9e44;--ng:#e03131;--card:#fff;--line:#e6dfd0}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Hiragino Sans","Yu Gothic","Meiryo",sans-serif;font-size:18px;line-height:1.6}
+.wrap{max-width:760px;margin:0 auto;padding:16px}
+h1{font-size:24px;margin:4px 0 2px}
+.lead{color:var(--sub);margin:0 0 10px;font-size:16px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.tabs button{flex:1;min-width:64px;padding:10px 6px;font-size:16px;border:2px solid var(--line);background:var(--card);border-radius:12px;cursor:pointer;color:var(--ink);font-family:inherit}
+.tabs button.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+.tabs.mode button{font-size:18px;padding:12px 6px}
+.tabs.mode button.on{background:var(--blue);border-color:var(--blue)}
+.tabs.sub button.on{background:var(--accent);border-color:var(--accent)}
+.card{background:var(--card);border:2px solid var(--line);border-radius:18px;padding:16px;margin:12px 0}
+.grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;max-height:300px;overflow:auto}
+.grid button{padding:4px 0;font-size:22px;line-height:1.2;border:2px solid var(--line);background:#fff;border-radius:10px;cursor:pointer;position:relative;color:var(--ink);font-family:inherit}
+.grid button small{display:block;font-size:13px;color:var(--sub);font-family:"Century Gothic","Trebuchet MS",Arial,sans-serif}
+.grid.nor small{visibility:hidden}
+.grid button.cur{border-color:var(--accent);background:#fff1e6}
+.grid button.done::after{content:"★";position:absolute;right:3px;top:0;font-size:12px;color:#f08c00}
+.bigk{font-size:min(36vw,170px);line-height:1.15;text-align:center;font-weight:600;margin:4px 0;user-select:none}
+.bigr{font-family:"Century Gothic","Trebuchet MS",Arial,sans-serif;font-size:min(22vw,110px);text-align:center;font-weight:700;line-height:1.1;margin:0 0 6px}
+.bigr .c{color:var(--blue)} .bigr .v{color:var(--accent)}
+.row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:8px 0}
+.btn{padding:12px 18px;font-size:18px;border-radius:12px;border:2px solid var(--blue);background:#fff;color:var(--blue);cursor:pointer;font-family:inherit}
+.btn.fill{background:var(--blue);color:#fff}
+.btn.gray{border-color:var(--line);color:var(--sub)}
+.word{text-align:center;font-size:22px}
+.word b{font-size:30px;color:var(--blue)}
+.note{background:#fff9db;border-radius:10px;padding:8px 12px;font-size:16px;margin-top:10px}
+.legend{text-align:center;font-size:15px;color:var(--sub)}
+.legend .c{color:var(--blue);font-weight:700}.legend .v{color:var(--accent);font-weight:700}
+canvas{width:100%;height:auto;aspect-ratio:1;background:#fff;border:2px dashed var(--line);border-radius:14px;touch-action:none;display:block}
+.q{text-align:center;font-size:20px;margin:6px 0}
+.qbig{font-size:64px;font-weight:700;text-align:center;margin:6px 0;color:var(--accent);line-height:1.2}
+.qbig.rom{font-family:"Century Gothic","Trebuchet MS",Arial,sans-serif}
+.qmean{text-align:center;color:var(--sub);margin-top:-6px}
+.choices{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:10px}
+.choices button{font-size:40px;font-weight:600;padding:12px 6px;border-radius:14px;border:3px solid var(--line);background:#fff;cursor:pointer;color:var(--ink);font-family:inherit}
+.choices.rom button{font-family:"Century Gothic","Trebuchet MS",Arial,sans-serif;font-size:34px}
+.choices button.ok{border-color:var(--ok);background:#ebfbee}
+.choices button.ng{border-color:var(--ng);background:#fff0f0}
+.fb{text-align:center;font-size:22px;font-weight:700;min-height:34px}
+.bar{height:10px;background:var(--line);border-radius:6px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ok);width:0}
+input.typ{width:100%;font-size:40px;text-align:center;padding:10px;border:3px solid var(--blue);border-radius:14px;font-family:"Century Gothic","Trebuchet MS",Arial,sans-serif}
+.qbig.sm{font-size:26px;line-height:1.4;color:var(--ink)}
+.rules{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:10px 0;align-items:baseline}
+.rules .k{font-family:"Century Gothic","Trebuchet MS",Arial,sans-serif;font-weight:700;color:var(--accent);font-size:22px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.chips button{padding:8px 12px;border:2px solid var(--line);background:#fff;border-radius:12px;font-size:18px;cursor:pointer;font-family:inherit;color:var(--ink);text-align:left}
+.chips small{color:var(--sub);font-family:"Century Gothic","Trebuchet MS",Arial,sans-serif;font-size:15px}
+.v{color:var(--accent);font-weight:700}
+ul.t{padding-left:22px;margin:6px 0}ul.t li{margin:6px 0}
+h3.s{font-size:19px;margin:12px 0 4px}
+.hide{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>ローマ字をおぼえよう</h1>
+<p class="lead">ひらがなとローマ字(アルファベットで日本語を書く方法)を結びつけて覚えます。「学ぶ」→「書く」→「クイズ」→「打つ」の順がおすすめです。★は覚えた文字です。⑤では のばす音と「っ」、⑥では 名前と住所の書き方を練習します。</p>
+<div class="note" style="margin-top:0">ここでは<b>ヘボン式</b>(パスポートや駅名の書き方)で教えます。し=shi、ち=chi、つ=tsu、ふ=fu、じ=ji。「打つ」では訓令式(si・ti・tu・hu・zi など)でも正解になります。</div>
+
+<div class="tabs" id="groups"></div>
+<div class="tabs mode" id="modes">
+ <button data-m="learn" class="on">① 学ぶ</button>
+ <button data-m="write">② 書く</button>
+ <button data-m="quiz">③ クイズ</button>
+ <button data-m="type">④ 打つ</button>
+ <button data-m="rule">⑤ のばす音・っ</button>
+ <button data-m="name">⑥ 名前・住所</button>
+</div>
+
+<div class="card" id="gridcard"><div class="grid" id="grid"></div></div>
+
+<section id="learn" class="card">
+ <div class="bigk" id="bigK"></div>
+ <div class="bigr" id="bigR"></div>
+ <div class="legend"><span class="c">青＝子音</span>　<span class="v">オレンジ＝母音(a i u e o)</span></div>
+ <div class="word" id="wordL" style="margin-top:8px"></div>
+ <div class="row">
+  <button class="btn" id="prev">◀ まえ</button>
+  <button class="btn fill" id="sayL">🔊 音を聞く</button>
+  <button class="btn" id="next">つぎ ▶</button>
+ </div>
+ <div class="row"><button class="btn fill" id="markL">★ 覚えた！</button></div>
+ <div class="note" id="tip"></div>
+</section>
+
+<section id="write" class="card hide">
+ <p class="q" id="wprompt"></p>
+ <canvas id="cv" width="600" height="600"></canvas>
+ <div class="row">
+  <button class="btn" id="wprev">◀ まえ</button>
+  <button class="btn fill" id="wsay">🔊 音</button>
+  <button class="btn" id="wnext">つぎ ▶</button>
+ </div>
+ <div class="row">
+  <button class="btn gray" id="wclear">消す</button>
+  <button class="btn gray" id="wguide">お手本 ON/OFF</button>
+ </div>
+</section>
+
+<section id="quiz" class="card hide">
+ <div class="tabs sub" id="qmodes">
+  <button data-q="k2r" class="on">ひらがな → ローマ字</button>
+  <button data-q="r2k">ローマ字 → ひらがな</button>
+  <button data-q="word">ことば → ローマ字</button>
+ </div>
+ <div class="bar"><i id="prog"></i></div>
+ <p class="q" id="qtext"></p>
+ <div id="qarea"></div>
+ <div class="choices" id="choices"></div>
+ <div class="fb" id="fb"></div>
+ <div class="row"><button class="btn fill hide" id="qnext">つぎへ ▶</button></div>
+</section>
+
+<section id="type" class="card hide">
+ <div class="tabs sub" id="tmodes">
+  <button data-t="char" class="on">もじ</button>
+  <button data-t="word">ことば</button>
+ </div>
+ <div class="bar"><i id="tprog"></i></div>
+ <p class="q" id="ttext"></p>
+ <div class="qbig" id="tbig"></div>
+ <div class="qmean" id="tmean"></div>
+ <input class="typ" id="tin" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" inputmode="latin" placeholder="ここに入力">
+ <div class="fb" id="tfb"></div>
+ <div class="row">
+  <button class="btn gray" id="thint">ヒントを見る</button>
+  <button class="btn fill hide" id="tagain">もう一度やる</button>
+ </div>
+</section>
+
+<section id="rule" class="card hide">
+ <div class="tabs sub" id="rsubs"><button data-r="long" class="on">のばす音</button><button data-r="soku">っ（つまる音）</button></div>
+ <div id="rexplain"></div>
+ <hr style="border:none;border-top:2px dashed var(--line);margin:14px 0">
+ <div class="tabs sub" id="rkinds"><button data-k="choose" class="on">れんしゅう：えらぶ</button><button data-k="type">れんしゅう：打つ</button></div>
+ <div id="rdrill"></div>
+</section>
+
+<section id="name" class="card hide">
+ <div class="tabs sub" id="nsubs">
+  <button data-n="rule" class="on">書き方のきまり</button>
+  <button data-n="name">名前を打つ</button>
+  <button data-n="addr">住所を打つ</button>
+  <button data-n="mine">自分の名前</button>
+ </div>
+ <div id="nrule">
+  <h3 class="s">名前の書き方</h3>
+  <ul class="t">
+   <li>はじめの文字を<b>大文字</b>、あとは小文字：<b>Taro Yamada</b></li>
+   <li>順番は「名 → 姓」（Taro Yamada）が一般的です。書類に「姓 Family name」「名 Given name」の欄があるときは、欄にあわせます。</li>
+   <li>のばす音（ou・oo・uu）は、書かない書き方もよく使われます（パスポートなど）：<b>Satou → Sato</b>、<b>Oono → Ono</b>、<b>Yuuko → Yuko</b>。ここでは、どちらも正解にします。</li>
+   <li>「ん」のあとが b・m・p のときは m と書く書き方もあります：<b>Sanpei → Sampei</b>。</li>
+  </ul>
+  <h3 class="s">住所の書き方</h3>
+  <ul class="t">
+   <li>日本語は「大きい → 小さい」の順（県 → 市 → 区 → 町 → 番地）。ローマ字は<b>「小さい → 大きい」</b>の順（番地 → 町 → 区 → 市 → 県）です。</li>
+   <li>市・区・県のまえには ハイフン（-）をつけて、小文字で書きます：<b>-shi　-ku　-ken　-to　-fu</b></li>
+   <li>番地は数字とハイフン：3丁目1番2号 → <b>3-1-2</b></li>
+   <li>郵便番号は県のあとに書きます。さいごに Japan をつけてもかまいません。</li>
+   <li>コンマ（,）は、つけても つけなくても正解にします。</li>
+  </ul>
+  <div class="note">例：〒860-0001 熊本県熊本市中央区水前寺1-2-3<br>→ <b>1-2-3 Suizenji, Chuo-ku, Kumamoto-shi, Kumamoto 860-0001, Japan</b><br><small>※ 番地・郵便番号は練習用の例です。県の「-ken」は つけても省略してもOKです。</small></div>
+ </div>
+ <div id="nname" class="hide">
+  <div class="tabs sub" id="norder"><button data-o="gf" class="on">名 → 姓（Taro Yamada）</button><button data-o="fg">姓 → 名（Yamada Taro）</button></div>
+  <div id="ndrill1"></div>
+ </div>
+ <div id="naddr" class="hide"><div id="ndrill2"></div></div>
+ <div id="nmine" class="hide">
+  <p class="q" style="text-align:left">ひらがな・カタカナで名前を入れてください。姓と名は、あきを入れて分けます。</p>
+  <input id="cin" class="typ" style="font-size:28px;font-family:inherit" type="text" autocomplete="off" placeholder="れい：やまだ たろう">
+  <div class="note" id="cout">ここに結果が出ます。</div>
+  <div class="row"><button class="btn fill" id="cdrill">この名前で打つ練習</button></div>
+  <div id="ndrill3"></div>
+ </div>
+</section>
+</div>
+
+<script>
+/* ===== DATA ===== */
+const DATA=[
+["あ行","あ a い i う u え e お o"],
+["か行","か ka き ki く ku け ke こ ko"],
+["さ行","さ sa し shi す su せ se そ so"],
+["た行","た ta ち chi つ tsu て te と to"],
+["な行","な na に ni ぬ nu ね ne の no"],
+["は行","は ha ひ hi ふ fu へ he ほ ho"],
+["ま行","ま ma み mi む mu め me も mo"],
+["や行","や ya ゆ yu よ yo"],
+["ら行","ら ra り ri る ru れ re ろ ro"],
+["わ行・ん","わ wa を wo ん n"],
+["濁音・半濁音","が ga ぎ gi ぐ gu げ ge ご go ざ za じ ji ず zu ぜ ze ぞ zo だ da で de ど do ば ba び bi ぶ bu べ be ぼ bo ぱ pa ぴ pi ぷ pu ぺ pe ぽ po"],
+["拗音","きゃ kya きゅ kyu きょ kyo しゃ sha しゅ shu しょ sho ちゃ cha ちゅ chu ちょ cho にゃ nya にゅ nyu にょ nyo ひゃ hya ひゅ hyu ひょ hyo みゃ mya みゅ myu みょ myo りゃ rya りゅ ryu りょ ryo ぎゃ gya ぎゅ gyu ぎょ gyo じゃ ja じゅ ju じょ jo びゃ bya びゅ byu びょ byo ぴゃ pya ぴゅ pyu ぴょ pyo"]
+];
+const GROUPS=DATA.map(([n,s])=>{const t=s.split(" "),items=[];for(let i=0;i<t.length;i+=2)items.push([t[i],t[i+1]]);return{name:n,items}});
+const ALL=[].concat(...GROUPS.map(g=>g.items));
+GROUPS.push({name:"ぜんぶ",items:ALL});
+const ROM={};ALL.forEach(([k,r])=>ROM[k]=r);
+const BASIC=ALL.filter(x=>x[0].length===1);
+const W={あ:"あめ|雨",い:"いぬ|犬",う:"うみ|海",え:"えき|駅",お:"おと|音",か:"かさ|傘",き:"きのこ|きのこ",く:"くるま|車",け:"けしき|景色",こ:"こえ|声",さ:"さかな|魚",し:"しま|島",す:"すし|寿司",せ:"せんせい|先生",そ:"そら|空",た:"たこ|たこ",ち:"ちず|地図",つ:"つき|月",て:"てがみ|手紙",と:"とり|鳥",な:"なつ|夏",に:"にく|肉",ぬ:"ぬの|布",ね:"ねこ|猫",の:"のり|のり",は:"はな|花",ひ:"ひかり|光",ふ:"ふね|船",へ:"へや|部屋",ほ:"ほし|星",ま:"まど|窓",み:"みず|水",む:"むし|虫",め:"めがね|眼鏡",も:"もり|森",や:"やま|山",ゆ:"ゆき|雪",よ:"よる|夜",ら:"らくだ|ラクダ",り:"りんご|りんご",る:"るす|留守",れ:"れもん|レモン",ろ:"ろく|六",わ:"わに|ワニ",ん:"ほん|本",が:"かがみ|鏡",ぎ:"ぎん|銀",ぐ:"すぐ|すぐに",げ:"げた|下駄",ご:"ごはん|ご飯",ざ:"ざる|ざる",じ:"じかん|時間",ず:"かず|数",ぜ:"かぜ|風",ぞ:"かぞく|家族",だ:"だいこん|大根",で:"でんわ|電話",ど:"どんぐり|どんぐり",ば:"ばら|バラ",び:"えび|海老",ぶ:"ぶた|豚",べ:"なべ|鍋",ぼ:"ぼたん|ボタン",ぱ:"ぱん|パン",ぴ:"ぴあの|ピアノ",ぷ:"ぷりん|プリン",ぺ:"ぺん|ペン",ぽ:"ぽすと|ポスト",きゃ:"きゃべつ|キャベツ",しゃ:"しゃしん|写真",ちゃ:"おちゃ|お茶",じゃ:"じゃがいも|じゃがいも",ひゃ:"ひゃく|百",きょ:"きょねん|去年"};
+const TIPS={し:"「し」は shi です(si ではありません)。",ち:"「ち」は chi です(ti ではありません)。",つ:"「つ」は tsu です。t と s を忘れずに。",ふ:"「ふ」は fu です(hu ではありません)。",じ:"「じ」は ji です。",は:"文字としては ha。ただし助詞の「は」(わたしは〜)は wa と読みます。",へ:"文字としては he。ただし助詞の「へ」(学校へ)は e と読みます。",を:"「を」は助詞(〜を)で使い、wo と書きます。",ん:"「ん」は n 1文字で書きます。",ぬ:"「ぬ」と「め」は形が似ているので注意。nu と me。",め:"「め」と「ぬ」は形が似ているので注意。me と nu。",わ:"「わ」「れ」「ね」は形が似ています。wa・re・ne を見分けましょう。",れ:"「れ」「わ」「ね」は形が似ています。re・wa・ne を見分けましょう。",ね:"「ね」「れ」「わ」は形が似ています。ne・re・wa を見分けましょう。",る:"「る」と「ろ」は形が似ています。ru と ro。",ろ:"「ろ」と「る」は形が似ています。ro と ru。",ま:"「ま」と「も」は似ています。ma と mo。",も:"「も」と「ま」は似ています。mo と ma。"};
+const CONFK={ぬ:"め",め:"ぬ",わ:"れ",れ:"わ",ね:"れ",は:"ほ",ほ:"は",る:"ろ",ろ:"る",さ:"ち",ち:"さ",い:"り",り:"い",こ:"に",に:"こ",あ:"お",お:"あ",ま:"も",も:"ま",す:"む",む:"す"};
+const SM="ゃゅょ";
+function sy(w){const a=[];for(let i=0;i<w.length;i++){if(i+1<w.length&&SM.includes(w[i+1])){a.push(w.slice(i,i+2));i++}else a.push(w[i])}return a}
+function rom(w){const a=sy(w);let o="",dbl=false;
+ for(let i=0;i<a.length;i++){const s=a[i];
+  if(s==="っ"){dbl=true;continue}
+  let r=ROM[s];if(r===undefined)r=s;
+  if(s==="ん"){const nr=a[i+1]&&ROM[a[i+1]];if(nr&&/^[aiueoy]/.test(nr))r="n'"}
+  if(dbl){r=(r.startsWith("ch")?"t":r[0])+r;dbl=false}
+  o+=r}
+ return o}
+const WORDS=[];const WORDOF={};
+Object.entries(W).forEach(([k,v])=>{const[kana,m]=v.split("|");WORDOF[k]={k:kana,m,r:rom(kana)};if(!WORDS.some(x=>x.k===kana))WORDS.push(WORDOF[k])});
+const VOW="aiueo";
+function norm(s){s=s.normalize("NFKC").toLowerCase().replace(/[\s']/g,"");
+ return s.replace(/cch/g,"tch").replace(/sy([auo])/g,"sh$1").replace(/ty([auo])/g,"ch$1").replace(/zy([auo])/g,"j$1").replace(/jy([auo])/g,"j$1").replace(/si/g,"shi").replace(/ti/g,"chi").replace(/tu/g,"tsu").replace(/(^|[^sc])hu/g,"$1fu").replace(/zi/g,"ji")}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const cap=s=>s.replace(/(^|[ \-])([a-z])/g,(m,a,b)=>a+b.toUpperCase());
+const parseW=s=>s.split(",").map(x=>{const[k,m]=x.split("|");return{k,m,r:rom(k)}});
+const LONGW=parseW("おかあさん|お母さん,おにいさん|お兄さん,くうき|空気,おねえさん|お姉さん,せんせい|先生,おおきい|大きい,とうきょう|東京,こうえん|公園,ゆうびんきょく|郵便局,ありがとう|ありがとう,ひこうき|飛行機,とおい|遠い,ちいさい|小さい,ふうせん|風船,おとうさん|お父さん,えいが|映画,すうじ|数字,おおさか|大阪,りょうり|料理,じゅうしょ|住所,けいたい|携帯");
+const SOKUW=parseW("がっこう|学校,きって|切手,ざっし|雑誌,ちょっと|ちょっと,いっぱい|いっぱい,にっき|日記,ばった|バッタ,まっすぐ|まっすぐ,ずっと|ずっと,せっけん|石けん,いっしょ|いっしょ,しっぽ|しっぽ,ざっか|雑貨,あさって|あさって,まっちゃ|抹茶,もっと|もっと,はっぱ|葉っぱ,けっこん|結婚,きっぷ|切符");
+function wrongs(r){const out=new Set();const add=s=>{if(s&&s!==r)out.add(s)};
+ r.replace(/aa|ii|uu|ee|oo|ou|ei/g,(m,off)=>{add(r.slice(0,off)+m[0]+r.slice(off+2));const alt={ou:"oo",oo:"ou",ei:"ee",ee:"ei"}[m];if(alt)add(r.slice(0,off)+alt+r.slice(off+2));return m});
+ r.replace(/tch|([kstpgzdbhfjrmny])\1/g,(m,c,off)=>{add(r.slice(0,off)+(m==="tch"?"ch":m[0])+r.slice(off+m.length));return m});
+ const m=r.match(/[aiueo]([kstpgzdbhmr])(?=[aiueo])/);if(m){const i=r.indexOf(m[0])+1;add(r.slice(0,i)+r[i]+r.slice(i))}
+ let t=0;while(out.size<3&&t++<30){const i=1+Math.floor(Math.random()*(r.length-1));add(r.slice(0,i)+r[i]+r.slice(i))}
+ return[...out]}
+function mkCheck(vars){const clean=s=>s.normalize("NFKC").replace(/[,，、]/g,"").replace(/\s+/g," ").trim();const V=vars.map(clean);
+ return t=>{const c=clean(t);if(!c)return"partial";if(V.includes(c))return"ok";const lc=c.toLowerCase();
+  if(V.some(v=>v.toLowerCase()===lc))return"case";
+  if(V.some(v=>v.toLowerCase().startsWith(lc)))return"partial";return"wrong"}}
+const NAMES=[["山田","太郎","やまだ","たろう","","Taro"],["佐藤","花子","さとう","はなこ","Sato",""],["田中","一郎","たなか","いちろう","","Ichiro"],["鈴木","優子","すずき","ゆうこ","","Yuko"],["井上","健二","いのうえ","けんじ","",""],["大野","正雄","おおの","まさお","Ono",""],["小林","翔太","こばやし","しょうた","","Shota"],["中村","涼子","なかむら","りょうこ","","Ryoko"],["森","三平","もり","さんぺい","","Sampei"],["加藤","千秋","かとう","ちあき","Kato",""],["吉田","美咲","よしだ","みさき","",""],["前田","浩二","まえだ","こうじ","","Koji"],["長谷川","愛","はせがわ","あい","",""],["近藤","純","こんどう","じゅん","Kondo",""]]
+ .map(([fk,gk,fa,ga,faa,gaa])=>({fk,gk,fa,ga,fams:faa?[faa,cap(rom(fa))]:[cap(rom(fa))],givs:gaa?[gaa,cap(rom(ga))]:[cap(rom(ga))]}));
+function nameVars(n,order){const v=[];n.fams.forEach(f=>n.givs.forEach(g=>v.push(order==="gf"?g+" "+f:f+" "+g)));return v}
+const ADDRS=[
+{k:"〒860-0001 熊本県熊本市中央区水前寺1-2-3",kana:"くまもとけん くまもとし ちゅうおうく すいぜんじ",parts:[["1-2-3"],["Suizenji"],["Chuo-ku","Chuuou-ku"],["Kumamoto-shi"],["Kumamoto","Kumamoto-ken"]],zip:"860-0001"},
+{k:"〒862-0001 熊本県熊本市東区健軍4-7-1",kana:"くまもとけん くまもとし ひがしく けんぐん",parts:[["4-7-1"],["Kengun"],["Higashi-ku"],["Kumamoto-shi"],["Kumamoto","Kumamoto-ken"]],zip:"862-0001"},
+{k:"〒861-0001 熊本県熊本市南区近見1-2-3",kana:"くまもとけん くまもとし みなみく ちかみ",parts:[["1-2-3"],["Chikami"],["Minami-ku"],["Kumamoto-shi"],["Kumamoto","Kumamoto-ken"]],zip:"861-0001"},
+{k:"〒812-0011 福岡県福岡市博多区博多駅前3-4-5",kana:"ふくおかけん ふくおかし はかたく はかたえきまえ",parts:[["3-4-5"],["Hakataekimae"],["Hakata-ku"],["Fukuoka-shi"],["Fukuoka","Fukuoka-ken"]],zip:"812-0011"},
+{k:"〒530-0001 大阪府大阪市北区梅田1-2-3",kana:"おおさかふ おおさかし きたく うめだ",parts:[["1-2-3"],["Umeda"],["Kita-ku"],["Osaka-shi","Oosaka-shi"],["Osaka","Osaka-fu","Oosaka-fu"]],zip:"530-0001"},
+{k:"〒160-0023 東京都新宿区西新宿2-8-1",kana:"とうきょうと しんじゅくく にししんじゅく",parts:[["2-8-1"],["Nishishinjuku"],["Shinjuku-ku"],["Tokyo","Tokyo-to","Toukyou-to"]],zip:"160-0023"}];
+function addrVars(a){let combos=[[]];a.parts.forEach(alts=>{const nx=[];combos.forEach(c=>alts.forEach(x=>nx.push([...c,x])));combos=nx});
+ const out=[];combos.forEach(c=>{const head=c.slice(0,-1);const base=head[0]+" "+head.slice(1).join(", ")+", "+c[c.length-1]+" "+a.zip;out.push(base,base+", Japan")});return out}
+function conv(str){const s=str.normalize("NFKC").replace(/[ァ-ヶ]/g,c=>String.fromCharCode(c.charCodeAt(0)-0x60));
+ const words=s.split(/\s+/).filter(Boolean),bad=[];
+ const out=words.map(w=>{const a=sy(w);let o="",dbl=false;
+  for(let i=0;i<a.length;i++){const t=a[i];
+   if(t==="っ"){dbl=true;continue}
+   if(t==="ー"){const m=o.match(/[aiueo]$/);if(m)o+=m[0];continue}
+   let r=ROM[t];
+   if(r===undefined){if(/^[A-Za-z0-9\-.]$/.test(t))o+=t;else{bad.push(t);o+="?"}continue}
+   if(t==="ん"){const nr=a[i+1]&&ROM[a[i+1]];if(nr&&/^[aiueoy]/.test(nr))r="n'"}
+   if(dbl){r=(r.startsWith("ch")?"t":r[0])+r;dbl=false}
+   o+=r}
+  return cap(o)}).join(" ");
+ return{out,bad:[...new Set(bad)]}}
+/*END DATA*/
+
+/* ===== STATE ===== */
+let gi=0,mode="learn",idx=0,qmode="k2r",tmode="char",guideOn=true;
+let prog={};
+try{prog=JSON.parse(localStorage.getItem("romaji_prog")||"{}")}catch(e){}
+const save=()=>{try{localStorage.setItem("romaji_prog",JSON.stringify(prog))}catch(e){}};
+const $=id=>document.getElementById(id);
+const cur=()=>GROUPS[gi].items;
+const isDone=k=>(prog[k]||0)>=3;
+const bump=(k,n)=>{prog[k]=Math.max(0,n);save()};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function say(t){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang="ja-JP";u.rate=.8;speechSynthesis.speak(u)}catch(e){}}
+function beep(ok){try{const a=new (window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.frequency.value=ok?880:220;g.gain.value=.08;o.start();o.stop(a.currentTime+(ok?.15:.3))}catch(e){}}
+function colorRom(r){let m=r.match(/^([^aiueo]*)([aiueo]*|.*)$/);if(r==="n")return`<span class="c">n</span>`;
+ const c=r.replace(/[aiueo]+$/,""),v=r.slice(c.length);return(c?`<span class="c">${c}</span>`:"")+(v?`<span class="v">${v}</span>`:"")}
+
+/* ===== grid / groups ===== */
+function buildGroups(){const el=$("groups");el.innerHTML="";GROUPS.forEach((g,i)=>{const b=document.createElement("button");b.textContent=g.name;if(i===gi)b.className="on";b.onclick=()=>{gi=i;idx=0;render();if(mode==="quiz")startQuiz();if(mode==="type")startType()};el.appendChild(b)})}
+function buildGrid(){const el=$("grid");el.innerHTML="";el.className="grid"+(mode==="quiz"||mode==="type"?" nor":"");
+ cur().forEach(([k,r],i)=>{const b=document.createElement("button");b.innerHTML=`${k}<small>${r}</small>`;if(i===idx&&(mode==="learn"||mode==="write"))b.classList.add("cur");if(isDone(k))b.classList.add("done");
+  b.onclick=()=>{if(mode==="quiz"||mode==="type")return;idx=i;render();say(k)};el.appendChild(b)})}
+
+/* ===== learn ===== */
+function renderLearn(){const[k,r]=cur()[idx];
+ $("bigK").textContent=k;$("bigK").style.fontSize=k.length>1?"min(30vw,140px)":"";
+ $("bigR").innerHTML=colorRom(r);
+ const w=WORDOF[k];
+ if(w){const first=k.length;$("wordL").innerHTML=`<b>${w.k.slice(0,first)}</b>${w.k.slice(first)} ＝ ${w.r}(${w.m})`}else $("wordL").textContent="";
+ $("tip").textContent=TIPS[k]?"💡 "+TIPS[k]:"💡 声に出して読みながら、ローマ字を指で3回なぞってみましょう。";
+ $("markL").textContent=isDone(k)?"★ 覚えた(もう一度おす→はずす)":"★ 覚えた！";}
+
+/* ===== write ===== */
+const cv=$("cv"),ctx=cv.getContext("2d");let drawing=false;
+function drawGuide(){const[k,r]=cur()[idx];$("wprompt").textContent=`「${k}」のローマ字をなぞって書きましょう`;
+ ctx.clearRect(0,0,600,600);ctx.strokeStyle="#eee6d3";ctx.lineWidth=2;ctx.setLineDash([8,8]);
+ [150,300,450].forEach(y=>{ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(600,y);ctx.stroke()});ctx.setLineDash([]);
+ if(guideOn){const fs=Math.min(440,540/(r.length*.62));ctx.fillStyle="#f1ddc9";ctx.font=`600 ${fs}px 'Century Gothic','Trebuchet MS',Arial,sans-serif`;ctx.textAlign="center";ctx.textBaseline="alphabetic";ctx.fillText(r,300,450)}
+ ctx.fillStyle="#9bbfe6";ctx.font="700 64px 'Hiragino Sans','Yu Gothic',sans-serif";ctx.textAlign="left";ctx.textBaseline="top";ctx.fillText(k,16,10)}
+function pos(e){const r=cv.getBoundingClientRect();return[(e.clientX-r.left)*600/r.width,(e.clientY-r.top)*600/r.height]}
+cv.addEventListener("pointerdown",e=>{drawing=true;cv.setPointerCapture(e.pointerId);const[x,y]=pos(e);ctx.beginPath();ctx.moveTo(x,y);ctx.strokeStyle="#1c7ed6";ctx.lineWidth=14;ctx.lineCap="round";ctx.lineJoin="round";ctx.lineTo(x+.1,y+.1);ctx.stroke()});
+cv.addEventListener("pointermove",e=>{if(!drawing)return;const[x,y]=pos(e);ctx.lineTo(x,y);ctx.stroke()});
+["pointerup","pointercancel"].forEach(t=>cv.addEventListener(t,()=>{drawing=false}));
+
+/* ===== quiz ===== */
+const TOTAL=10;let Q={n:0,score:0,ans:false};
+function distractors(it,key,n){const p=cur(),same=x=>x[1]!==it[1]&&(x[1][0]===it[1][0]||x[1].slice(-1)===it[1].slice(-1));
+ const lists=[p.filter(same),p.filter(x=>x[1]!==it[1]),ALL.filter(same),ALL.filter(x=>x[1]!==it[1])];const out=[];
+ if(key===0&&CONFK[it[0]]){const c=ALL.find(x=>x[0]===CONFK[it[0]]);if(c)out.push(c)}
+ for(const l of lists){for(const x of shuffle(l)){if(out.length>=n)break;if(x[key]!==it[key]&&!out.some(o=>o[key]===x[key]))out.push(x)}if(out.length>=n)break}
+ return out.slice(0,n).map(x=>x[key])}
+function wordPool(){const p=cur().map(x=>x[0]);const f=WORDS.filter(w=>sy(w.k).some(s=>p.includes(s)));return f.length>=4?f:WORDS}
+function wordOpts(w){const s=sy(w.k),ans=rom(w.k),set=new Set([ans]);let t=0;
+ while(set.size<4&&t++<80){const c=s.slice(),i=Math.floor(Math.random()*c.length);
+  if(Math.random()<.25&&c.length>1&&i<c.length-1){[c[i],c[i+1]]=[c[i+1],c[i]]}else{const cand=shuffle(BASIC).find(x=>x[1]!==ROM[c[i]]&&(x[1][0]===ROM[c[i]][0]||x[1].slice(-1)===ROM[c[i]].slice(-1)))||pick(BASIC);c[i]=cand[0]}
+  set.add(c.map(z=>ROM[z]).join(""))}
+ return shuffle([...set])}
+function startQuiz(){Q={n:0,score:0,ans:false};nextQ()}
+function nextQ(){
+ if(Q.n>=TOTAL)return finishQuiz();
+ Q.ans=false;$("fb").textContent="";$("qnext").classList.add("hide");$("prog").style.width=(Q.n/TOTAL*100)+"%";
+ let ans,opts,key=null;const ch=$("choices");ch.className="choices";
+ if(qmode==="k2r"){const it=pick(cur());ans=it[1];opts=shuffle([ans,...distractors(it,1,3)]);key=it[0];
+  $("qtext").textContent=`第${Q.n+1}問　ローマ字はどれ？`;$("qarea").innerHTML=`<div class="qbig">${it[0]}</div>`;ch.classList.add("rom")}
+ else if(qmode==="r2k"){const it=pick(cur());ans=it[0];opts=shuffle([ans,...distractors(it,0,3)]);key=it[0];
+  $("qtext").textContent=`第${Q.n+1}問　ひらがなはどれ？`;$("qarea").innerHTML=`<div class="qbig rom">${it[1]}</div>`}
+ else{const w=pick(wordPool());ans=w.r;opts=wordOpts(w);
+  $("qtext").textContent=`第${Q.n+1}問　ことばのローマ字はどれ？`;$("qarea").innerHTML=`<div class="qbig">${w.k}</div><div class="qmean">(${w.m})</div>`;ch.classList.add("rom")}
+ Q.key=key;ch.innerHTML="";
+ opts.forEach(c=>{const b=document.createElement("button");b.textContent=c;b.onclick=()=>answer(b,c,ans);ch.appendChild(b)})}
+function answer(btn,c,ans){if(Q.ans)return;Q.ans=true;const ok=c===ans;beep(ok);
+ if(ok){btn.classList.add("ok");Q.score++;$("fb").textContent="⭕ せいかい！";$("fb").style.color="var(--ok)";if(Q.key)bump(Q.key,(prog[Q.key]||0)+1)}
+ else{btn.classList.add("ng");[...$("choices").children].forEach(b=>{if(b.textContent===ans)b.classList.add("ok")});$("fb").textContent=`❌ 正しくは「${ans}」です`;$("fb").style.color="var(--ng)";if(Q.key)bump(Q.key,(prog[Q.key]||0)-1)}
+ if(Q.key)say(Q.key);Q.n++;buildGrid();$("qnext").textContent=Q.n>=TOTAL?"けっかを見る ▶":"つぎへ ▶";$("qnext").classList.remove("hide")}
+function finishQuiz(){$("prog").style.width="100%";$("qarea").innerHTML="";$("choices").innerHTML="";const s=Q.score;
+ $("qtext").textContent=`けっか：${TOTAL}問中 ${s}問 せいかい`;$("fb").style.color="var(--ink)";
+ $("fb").textContent=s>=9?"すばらしい！ほぼ完ぺきです🎉":s>=7?"よくできました！あと少しです👍":"だいじょうぶ。「学ぶ」にもどって、もう一度やってみましょう。";
+ $("qnext").textContent="もう一度やる";$("qnext").classList.remove("hide");Q.n=TOTAL+1}
+$("qnext").onclick=()=>{if(Q.n>TOTAL)startQuiz();else nextQ()};
+$("qmodes").onclick=e=>{const q=e.target.dataset&&e.target.dataset.q;if(!q)return;qmode=q;[...$("qmodes").children].forEach(b=>b.classList.toggle("on",b.dataset.q===q));startQuiz()};
+
+/* ===== type ===== */
+let T={n:0,score:0,item:null,missed:false,lock:false};
+function startType(){T={n:0,score:0,item:null,missed:false,lock:false};$("tagain").classList.add("hide");$("tin").classList.remove("hide");$("thint").classList.remove("hide");nextT()}
+function nextT(){
+ if(T.n>=TOTAL){$("tprog").style.width="100%";$("tbig").textContent="";$("tmean").textContent="";$("tin").classList.add("hide");$("thint").classList.add("hide");
+  $("ttext").textContent=`けっか：${TOTAL}問中 ${T.score}問を 一発で入力できました`;$("tfb").style.color="var(--ink)";$("tfb").textContent=T.score>=9?"すばらしい！🎉":T.score>=7?"よくできました👍":"くり返すほど速くなります。もう一度やってみましょう。";$("tagain").classList.remove("hide");return}
+ $("tprog").style.width=(T.n/TOTAL*100)+"%";$("tfb").textContent="";T.missed=false;T.lock=false;
+ if(tmode==="char"){const it=pick(cur());T.item={k:it[0],r:it[1],key:it[0]};$("tbig").textContent=it[0];$("tmean").textContent=""}
+ else{const w=pick(wordPool());T.item={k:w.k,r:w.r,key:null};$("tbig").textContent=w.k;$("tmean").textContent=`(${w.m})`}
+ $("ttext").textContent=`第${T.n+1}問　ローマ字で入力しましょう`;
+ const i=$("tin");i.value="";i.focus()}
+function checkT(){if(T.lock||!T.item)return;const v=norm($("tin").value),t=norm(T.item.r);if(!v)return;
+ if(v===t){T.lock=true;beep(true);$("tfb").style.color="var(--ok)";$("tfb").textContent="⭕ せいかい！";
+  if(!T.missed)T.score++;if(T.item.key)bump(T.item.key,(prog[T.item.key]||0)+(T.missed?-1:1));buildGrid();
+  T.n++;setTimeout(nextT,600)}
+ else if(v.length>=t.length){beep(false);T.missed=true;$("tfb").style.color="var(--ng)";$("tfb").textContent=`もう一度。ヒント：${t}`;$("tin").value=""}}
+$("tin").addEventListener("input",checkT);
+$("tin").addEventListener("keydown",e=>{if(e.key==="Enter")checkT()});
+$("thint").onclick=()=>{if(!T.item)return;T.missed=true;$("tfb").style.color="var(--blue)";$("tfb").textContent=`答え：${T.item.r}`;$("tin").focus()};
+$("tagain").onclick=startType;
+$("tmodes").onclick=e=>{const t=e.target.dataset&&e.target.dataset.t;if(!t)return;tmode=t;[...$("tmodes").children].forEach(b=>b.classList.toggle("on",b.dataset.t===t));startType()};
+
+/* ===== Drill (generic) ===== */
+function Drill(root){
+ root.innerHTML='<div class="bar"><i></i></div><p class="q"></p><div class="qbig"></div><div class="qmean"></div><div class="choices rom"></div><input class="typ hide" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" inputmode="latin" placeholder="ここに入力"><div class="fb"></div><div class="row"><button class="btn gray hide hint">ヒントを見る</button><button class="btn fill hide nxt">つぎへ ▶</button></div>';
+ const $q=s=>root.querySelector(s);
+ const bar=$q(".bar i"),qt=$q(".q"),big=$q(".qbig"),mean=$q(".qmean"),ch=$q(".choices"),inp=$q("input"),fb=$q(".fb"),hint=$q(".hint"),nxt=$q(".nxt");
+ let S=null;
+ const setFb=(t,c)=>{fb.textContent=t;fb.style.color=c||"var(--ink)"};
+ function next(){
+  if(S.n>S.total){return start(S.kind,S.gen,S.total)}
+  if(S.n>=S.total)return finish();
+  S.lock=false;S.missed=false;setFb("");nxt.classList.add("hide");bar.style.width=(S.n/S.total*100)+"%";
+  const it=S.cur=S.gen();qt.textContent="第"+(S.n+1)+"問　"+it.text;big.innerHTML=it.big;big.className="qbig"+(it.small?" sm":"");mean.textContent=it.mean||"";
+  if(S.kind==="choose"){inp.classList.add("hide");hint.classList.add("hide");ch.classList.remove("hide");ch.innerHTML="";it.opts.forEach(o=>{const b=document.createElement("button");b.textContent=o;b.onclick=()=>pickc(b,o);ch.appendChild(b)})}
+  else{ch.classList.add("hide");inp.classList.remove("hide");hint.classList.remove("hide");inp.value="";inp.focus()}}
+ function pickc(b,o){if(S.lock)return;S.lock=true;const ok=o===S.cur.ans;beep(ok);
+  if(ok){b.classList.add("ok");S.score++;setFb("⭕ せいかい！","var(--ok)")}
+  else{b.classList.add("ng");[...ch.children].forEach(x=>{if(x.textContent===S.cur.ans)x.classList.add("ok")});setFb("❌ 正しくは「"+S.cur.ans+"」です","var(--ng)")}
+  S.n++;nxt.textContent=S.n>=S.total?"けっかを見る ▶":"つぎへ ▶";nxt.classList.remove("hide")}
+ function evalT(final){if(!S||S.kind!=="type"||S.lock||S.n>=S.total)return;const code=S.cur.check(inp.value);
+  if(code==="ok"){S.lock=true;beep(true);setFb("⭕ せいかい！","var(--ok)");if(!S.missed)S.score++;S.n++;setTimeout(next,700)}
+  else if(code==="case"){S.missed=true;setFb("大文字・小文字をたしかめましょう。はじめの文字は大文字です。","var(--blue)")}
+  else if(code==="wrong"||(final&&inp.value.trim())){beep(false);S.missed=true;setFb("ちがう文字があります。もう一度（ヒントで答えが見られます）","var(--ng)");if(S.cur.clear)inp.value=""}}
+ function finish(){bar.style.width="100%";big.innerHTML="";mean.textContent="";ch.innerHTML="";inp.classList.add("hide");hint.classList.add("hide");
+  qt.textContent="けっか："+S.total+"問中 "+S.score+"問"+(S.kind==="type"?" 一発で入力できました":" せいかい");
+  const r=S.score/S.total;setFb(r>=.9?"すばらしい！🎉":r>=.7?"よくできました👍":"くり返すほど身につきます。もう一度やってみましょう。");
+  S.n=S.total+1;nxt.textContent="もう一度やる";nxt.classList.remove("hide")}
+ function start(kind,gen,total){S={kind,gen,total:total||10,n:0,score:0,lock:false,missed:false,cur:null};next()}
+ nxt.onclick=next;
+ hint.onclick=()=>{if(!S||!S.cur)return;S.missed=true;setFb("答え："+S.cur.ans,"var(--blue)");inp.focus()};
+ inp.addEventListener("input",()=>evalT(false));
+ inp.addEventListener("keydown",e=>{if(e.key==="Enter")evalT(true)});
+ return{start}}
+
+/* ===== rule (のばす音・っ) ===== */
+const hlLong=r=>r.replace(/aa|ii|uu|ee|oo|ou|ei/g,m=>'<span class="v">'+m+'</span>');
+const hlSoku=r=>r.replace(/tch|([kstpgzdbhfjrmny])\1/g,m=>'<span class="v">'+m+'</span>');
+let rsub="long",rkind="choose";
+const RD=Drill($("rdrill"));
+function explainHTML(t){
+ if(t==="long")return '<div class="note" style="margin-top:0">ここでは<b>キーボードで打つときの書き方</b>を練習します。「のばす音」は、かなを そのまま ローマ字にします。</div><div class="rules"><div class="k">aa</div><div>あ + あ　<b>おかあさん</b> okaasan</div><div class="k">ii</div><div>い + い　<b>おにいさん</b> oniisan</div><div class="k">uu</div><div>う + う　<b>くうき</b> kuuki</div><div class="k">ee / ei</div><div>え + え　<b>おねえさん</b> oneesan ／ え + い　<b>せんせい</b> sensei</div><div class="k">oo / ou</div><div>お + お　<b>おおきい</b> ookii ／ お + う　<b>とうきょう</b> toukyou</div></div><div class="note">💡 「えい」「おう」は、ee・oo ではなく <b>ei・ou</b> と書きます。かなに「い」「う」が書いてあるからです。</div>';
+ return '<div class="note" style="margin-top:0">「っ」（小さい つ）は、<b>つぎの子音を2回</b>書きます。</div><div class="rules"><div class="k">kk</div><div>っ + か行　<b>がっこう</b> gakkou</div><div class="k">ss / ssh</div><div>っ + さ行　<b>ざっし</b> zasshi ／ <b>いっしょ</b> issho</div><div class="k">tt</div><div>っ + た行　<b>きって</b> kitte</div><div class="k">pp</div><div>っ + ぱ行　<b>いっぱい</b> ippai</div><div class="k">tch</div><div>っ + ち　<b>まっちゃ</b> matcha（ch の前は t を書きます）</div></div><div class="note">💡 声に出して、音がつまるところ（「がっ」）で、子音をかさねます。</div>'}
+function chipsHTML(L,hl){return '<div class="chips">'+L.map(w=>'<button data-say="'+w.k+'">'+w.k+'<br><small>'+hl(w.r)+'（'+w.m+'）</small></button>').join("")+"</div>"}
+function ruleCheck(a){const A=norm(a);return t=>{const v=norm(t);if(!v)return"partial";if(v===A)return"ok";return v.length>=A.length?"wrong":"partial"}}
+function ruleGen(){const w=pick(rsub==="long"?LONGW:SOKUW),a=w.r;
+ const base={big:w.k,mean:"（"+w.m+"）",ans:a};
+ if(rkind==="choose")return{...base,text:"ローマ字はどれ？",opts:shuffle([a,...shuffle(wrongs(a)).slice(0,3)])};
+ return{...base,text:"ローマ字で入力しましょう",check:ruleCheck(a),clear:true}}
+function renderRule(){const L=rsub==="long"?LONGW:SOKUW;
+ $("rexplain").innerHTML=explainHTML(rsub)+'<p class="lead" style="margin:8px 0 0">🔊 ことばをおすと、読み上げます。</p>'+chipsHTML(L,rsub==="long"?hlLong:hlSoku);
+ RD.start(rkind,ruleGen,10)}
+$("rexplain").onclick=e=>{const b=e.target.closest("[data-say]");if(b)say(b.dataset.say)};
+$("rsubs").onclick=e=>{const r=e.target.dataset&&e.target.dataset.r;if(!r)return;rsub=r;[...$("rsubs").children].forEach(b=>b.classList.toggle("on",b.dataset.r===r));renderRule()};
+$("rkinds").onclick=e=>{const k=e.target.dataset&&e.target.dataset.k;if(!k)return;rkind=k;[...$("rkinds").children].forEach(b=>b.classList.toggle("on",b.dataset.k===k));RD.start(rkind,ruleGen,10)};
+
+/* ===== name / address ===== */
+const ND1=Drill($("ndrill1")),ND2=Drill($("ndrill2")),ND3=Drill($("ndrill3"));
+let nsub="rule",norder="gf",MINE=null;
+function nameGen(){const n=pick(NAMES),vars=nameVars(n,norder);
+ return{text:"ローマ字で書きましょう（"+(norder==="gf"?"名 → 姓":"姓 → 名")+"の順）",big:esc(n.fk+" "+n.gk),mean:n.fa+" "+n.ga,
+  ans:vars[0]+(vars.length>1?"（または "+vars.slice(1).join(" / ")+"）":""),check:mkCheck(vars)}}
+function addrGen(){const a=pick(ADDRS),vars=addrVars(a);
+ return{text:"ローマ字で、小さい順に書きましょう（番地→町→区→市→県→郵便番号）",big:esc(a.k),small:true,mean:a.kana,
+  ans:vars[0]+"（県の -ken や、さいごの Japan は、つけても正解）",check:mkCheck(vars)}}
+function renderName(){["rule","name","addr","mine"].forEach(p=>$("n"+p).classList.toggle("hide",p!==nsub));
+ if(nsub==="name")ND1.start("type",nameGen,8);if(nsub==="addr")ND2.start("type",addrGen,5)}
+$("nsubs").onclick=e=>{const n=e.target.dataset&&e.target.dataset.n;if(!n)return;nsub=n;[...$("nsubs").children].forEach(b=>b.classList.toggle("on",b.dataset.n===n));renderName()};
+$("norder").onclick=e=>{const o=e.target.dataset&&e.target.dataset.o;if(!o)return;norder=o;[...$("norder").children].forEach(b=>b.classList.toggle("on",b.dataset.o===o));ND1.start("type",nameGen,8)};
+function updateMine(){const v=$("cin").value.trim(),o=$("cout");
+ if(!v){o.innerHTML="ここに結果が出ます。";MINE=null;return}
+ const r=conv(v);let h='ローマ字：<b style="font-size:24px">'+esc(r.out)+"</b>";const ws=r.out.split(" ");
+ if(ws.length===2)h+='<br>名 → 姓の順なら：<b>'+esc(ws[1]+" "+ws[0])+"</b>";
+ if(r.bad.length)h+='<br>⚠ 変換できない文字：'+esc(r.bad.join(" "))+'（ひらがな・カタカナで入れてください）';
+ h+='<br><small>のばす音（ou・oo・uu）を省略する書き方もよく使われます（Satou → Sato）。書類では、決まりを確かめましょう。</small>';
+ o.innerHTML=h;MINE={src:v,out:r.out,ws,bad:r.bad}}
+$("cin").addEventListener("input",updateMine);
+$("cdrill").onclick=()=>{updateMine();if(!MINE||MINE.bad.length)return;
+ const vars=[MINE.out];if(MINE.ws.length===2)vars.push(MINE.ws[1]+" "+MINE.ws[0]);
+ const all=[...new Set([...vars,...vars.map(x=>x.replace(/'/g,""))])];
+ ND3.start("type",()=>({text:"自分の名前を打ちましょう",big:esc(MINE.src),mean:"",ans:vars[0],check:mkCheck(all)}),5)};
+
+/* ===== wiring ===== */
+function step(d){const n=cur().length;idx=(idx+d+n)%n;render();say(cur()[idx][0])}
+$("prev").onclick=()=>step(-1);$("next").onclick=()=>step(1);$("wprev").onclick=()=>step(-1);$("wnext").onclick=()=>step(1);
+$("sayL").onclick=()=>say(cur()[idx][0]);$("wsay").onclick=()=>say(cur()[idx][0]);
+$("markL").onclick=()=>{const k=cur()[idx][0];bump(k,isDone(k)?0:3);render()};
+$("wclear").onclick=drawGuide;$("wguide").onclick=()=>{guideOn=!guideOn;drawGuide()};
+$("modes").onclick=e=>{const m=e.target.dataset&&e.target.dataset.m;if(!m)return;mode=m;render();if(m==="quiz")startQuiz();if(m==="type")startType();if(m==="rule")renderRule();if(m==="name")renderName()};
+function render(){buildGroups();[...$("modes").children].forEach(b=>b.classList.toggle("on",b.dataset.m===mode));
+ ["learn","write","quiz","type","rule","name"].forEach(s=>$(s).classList.toggle("hide",s!==mode));const sp=mode==="rule"||mode==="name";$("groups").classList.toggle("hide",sp);$("gridcard").classList.toggle("hide",sp);
+ buildGrid();if(mode==="learn")renderLearn();if(mode==="write")drawGuide()}
+render();
+</script>
+</body>
+</html>
